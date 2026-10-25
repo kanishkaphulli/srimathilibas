@@ -32,6 +32,7 @@ export default {
     if (path === '/promos.json') return json(await getPromos(env));
     if (path.startsWith('/photos/')) return photo(env, path.slice('/photos/'.length));
     if (path === '/api/payments') return json({ card: !!env.STRIPE_SECRET_KEY });
+    if (path === '/api/settings') return json(await getSettings(env));
     if (path === '/api/order' && req.method === 'POST') return placeOrder(req, env, 'bank');
     if (path === '/api/checkout' && req.method === 'POST') return placeOrder(req, env, 'card', url);
     if (path === '/api/session') return session(url, env);
@@ -71,6 +72,14 @@ async function getProducts(env) {
 async function getPromos(env) {
   const { results } = await env.DB.prepare('SELECT id,tag,title,text,until,active FROM promos ORDER BY sort, rowid').all();
   return results.map((p) => ({ ...p, active: !!p.active }));
+}
+// Shop on/off switches, stored in the meta table as 0/1; a missing row means the feature is on
+const SETTINGS = ['planner'];
+async function getSettings(env) {
+  const { results } = await env.DB.prepare(`SELECT key, value FROM meta WHERE key IN (${SETTINGS.map(() => '?').join(',')})`).bind(...SETTINGS).all();
+  const s = Object.fromEntries(SETTINGS.map((k) => [k, true]));
+  results.forEach((r) => { s[r.key] = !!r.value; });
+  return s;
 }
 const version = async (env) => (await env.DB.prepare("SELECT value FROM meta WHERE key='version'").first('value')) || 0;
 
@@ -225,8 +234,15 @@ async function adminApi(req, env, route) {
   const body = async () => { try { return await req.json(); } catch { throw new HttpError(400, 'Bad request'); } };
 
   if (route === 'data' && req.method === 'GET') {
-    const [products, promos, v] = await Promise.all([getProducts(env), getPromos(env), version(env)]);
-    return json({ products, promos, version: v });
+    const [products, promos, v, settings] = await Promise.all([getProducts(env), getPromos(env), version(env), getSettings(env)]);
+    return json({ products, promos, version: v, settings });
+  }
+  if (route === 'settings' && req.method === 'PUT') {
+    const s = await body();
+    const changes = SETTINGS.filter((k) => k in s);
+    if (!changes.length || changes.some((k) => typeof s[k] !== 'boolean')) throw new HttpError(400, 'Invalid settings');
+    await env.DB.batch(changes.map((k) => env.DB.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').bind(k, s[k] ? 1 : 0)));
+    return json(await getSettings(env));
   }
   if (route === 'catalogue' && req.method === 'PUT') {
     const { products, promos, version: v } = await body();

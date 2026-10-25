@@ -37,6 +37,14 @@ td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td img{width:44px;height:56px;object-fit:cover;border-radius:4px;display:block;background:var(--line)}
 .out{color:var(--bad);font-size:.8rem;font-weight:500}
 small{color:var(--muted)}
+.switch{display:inline-flex;align-items:center;gap:12px;cursor:pointer;font-weight:500;margin-top:8px}
+.switch input{position:absolute;opacity:0;width:1px}
+.switch .track{position:relative;width:44px;height:24px;border-radius:12px;background:#cfc5bd;transition:background .2s;flex:0 0 auto}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch input:checked+.track{background:var(--ok)}
+.switch input:checked+.track::after{transform:translateX(20px)}
+.switch input:focus-visible+.track{outline:2px solid var(--gold);outline-offset:2px}
+.switch input:disabled+.track{opacity:.6}
 h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;font-weight:500}
 details.prod{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--surface)}
 details.prod[open]{border-color:var(--gold)}
@@ -109,6 +117,12 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
 <header><div class="wrap"><h1>Srimathi Libas · Admin</h1><a href="/" target="_blank">View shop ↗</a></div></header>
 
 <main class="wrap">
+  <section aria-labelledby="set-title">
+    <h2 id="set-title">Shop settings</h2>
+    <label class="switch"><input type="checkbox" id="set-planner" role="switch"><span class="track" aria-hidden="true"></span><span>Show “Plan by occasion” on the shop</span></label>
+    <p class="hint" style="margin:8px 0 0">Turns the planner section, its menu link and its button on or off straight away. No need to click Save &amp; publish.</p>
+  </section>
+
   <section aria-labelledby="ord-title">
     <div class="row" style="justify-content:space-between">
       <h2 id="ord-title">Orders</h2>
@@ -187,7 +201,7 @@ async function api(path,opts={}){
   return j;
 }
 async function load(){
-  try{data=await api('data'); dirty=false; render(); status('Loaded — up to date.','ok')}
+  try{data=await api('data'); dirty=false; render(); $('#set-planner').checked=data.settings?.planner!==false; status('Loaded — up to date.','ok')}
   catch(e){status('Could not load: '+e.message,'bad')}
 }
 function changed(){dirty=true;status('Unsaved changes — click Save & publish')}
@@ -404,6 +418,14 @@ $('#save').onclick=async()=>{
   try{const {version}=await api('catalogue',{method:'PUT',body:JSON.stringify(data)}); data.version=version; dirty=false; status('Saved — the shop shows your changes now.','ok')}
   catch(e){status('Not saved: '+e.message,'bad')}
   $('#save').disabled=false;
+};
+
+// ---- Shop settings: saved immediately, separate from Save & publish ----
+$('#set-planner').onchange=async e=>{
+  const on=e.target.checked; e.target.disabled=true;
+  try{await api('settings',{method:'PUT',body:JSON.stringify({planner:on})}); status(on?'“Plan by occasion” is now shown on the shop.':'“Plan by occasion” is now hidden on the shop.','ok')}
+  catch(err){e.target.checked=!on; status('Setting not saved: '+err.message,'bad')}
+  e.target.disabled=false;
 };
 
 // ---- Orders ----

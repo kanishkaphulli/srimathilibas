@@ -420,7 +420,8 @@ const SHIPPING=12; // keep in sync with SHIPPING in order.js, which is what card
 const BANK={name:'Srimathi Libas',acct:''};
 // Catalogue and promos come from the D1 database via worker.js, edited in admin.html
 const load=f=>fetch(f,{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]);
-const [PRODUCTS,PROMOS,PAY]=await Promise.all([load('products.json'),load('promos.json'),fetch('api/payments').then(r=>r.ok?r.json():{}).catch(()=>({}))]);
+const getJson=u=>fetch(u).then(r=>r.ok?r.json():{}).catch(()=>({}));
+const [PRODUCTS,PROMOS,PAY,SETTINGS]=await Promise.all([load('products.json'),load('promos.json'),getJson('api/payments'),getJson('api/settings')]);
 const $=s=>document.querySelector(s), byId=id=>PRODUCTS.find(p=>p.id===id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
 const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
@@ -462,6 +463,12 @@ const fmtDay=d=>d.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',mont
 // Promo bar: current offers from admin
 $('#promo-bar').hidden=!live.length;
 $('#promo-bar').innerHTML=live.slice(0,2).map(p=>`<b>${esc(p.title)}</b>${p.until?` · until ${esc(fmtDay(new Date(p.until+'T12:00')))}`:''}`).join('&ensp;|&ensp;');
+
+// Admin can switch the planner off: hide the section and every link to it
+if(SETTINGS.planner===false){
+  $('#programme').hidden=true;
+  document.querySelectorAll('a[href="#programme"]').forEach(a=>a.hidden=true);
+}
 
 // Plan by occasion: tick occasions, add dates -> in-stock pieces per occasion and the order-by date
 const PG_KEY='sl-programme';
