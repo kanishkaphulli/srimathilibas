@@ -8,3 +8,7 @@ node_modules
 wrangler.jsonc
 README.md
 .DS_Store
+worker.js
+worker.test.mjs
+.dev.vars
+order.js

@@ -1,10 +1,10 @@
 [
-  {"id":"lh1","cat":"Lehengas","name":"Marigold Festive Lehenga","price":289,"stock":4,"img":"https://images.unsplash.com/photo-1767955694884-d4bf352c23c2?w=600&h=800&fit=crop&q=75"},
-  {"id":"lh2","cat":"Lehengas","name":"Rani Red Bridal Lehenga","price":549,"stock":2,"img":"https://images.unsplash.com/photo-1759906760638-eeffcb471e53?w=600&h=800&fit=crop&q=75"},
-  {"id":"su1","cat":"Ethnic Suits","name":"Gulnaar Red Kurta Set","price":129,"stock":10,"img":"https://images.unsplash.com/photo-1759840278381-bf7d5e332050?w=600&h=800&fit=crop&q=75"},
-  {"id":"su2","cat":"Ethnic Suits","name":"Ivory Gold Anarkali Suit","price":159,"stock":6,"img":"https://images.unsplash.com/photo-1601432093209-8af1fd74b054?w=600&h=800&fit=crop&q=75"},
-  {"id":"sa1","cat":"Sarees","name":"Emerald Silk Saree","price":219,"stock":5,"img":"https://images.unsplash.com/photo-1679006831648-7c9ea12e5807?w=600&h=800&fit=crop&q=75"},
-  {"id":"sa2","cat":"Sarees","name":"Royal Purple Zari Saree","price":249,"stock":0,"img":"https://images.unsplash.com/photo-1641699862936-be9f49b1c38d?w=600&h=800&fit=crop&q=75"},
-  {"id":"co1","cat":"Co-ord Sets","name":"Sunshine Skirt Co-ord","price":119,"stock":8,"img":"https://images.unsplash.com/photo-1574847872646-abff244bbd87?w=600&h=800&fit=crop&q=75"},
-  {"id":"co2","cat":"Co-ord Sets","name":"Indigo Floral Co-ord","price":109,"stock":7,"img":"https://images.unsplash.com/photo-1610202631408-fa6ba0f39ca3?w=600&h=800&fit=crop&q=75"}
+  {"id":"lh1","cat":"Lehengas","name":"Marigold Festive Lehenga","price":289,"sizes":{"S":1,"M":2,"L":1,"XL":0},"img":"https://images.unsplash.com/photo-1767955694884-d4bf352c23c2?w=600&h=800&fit=crop&q=75"},
+  {"id":"lh2","cat":"Lehengas","name":"Rani Red Bridal Lehenga","price":549,"sizes":{"S":0,"M":1,"L":1},"img":"https://images.unsplash.com/photo-1759906760638-eeffcb471e53?w=600&h=800&fit=crop&q=75"},
+  {"id":"su1","cat":"Ethnic Suits","name":"Gulnaar Red Kurta Set","price":129,"sizes":{"XS":1,"S":2,"M":3,"L":2,"XL":1,"XXL":1},"img":"https://images.unsplash.com/photo-1759840278381-bf7d5e332050?w=600&h=800&fit=crop&q=75"},
+  {"id":"su2","cat":"Ethnic Suits","name":"Ivory Gold Anarkali Suit","price":159,"sizes":{"S":1,"M":2,"L":2,"XL":1},"img":"https://images.unsplash.com/photo-1601432093209-8af1fd74b054?w=600&h=800&fit=crop&q=75"},
+  {"id":"sa1","cat":"Sarees","name":"Emerald Silk Saree","price":219,"sizes":{"Free size":5},"img":"https://images.unsplash.com/photo-1679006831648-7c9ea12e5807?w=600&h=800&fit=crop&q=75"},
+  {"id":"sa2","cat":"Sarees","name":"Royal Purple Zari Saree","price":249,"sizes":{"Free size":0},"img":"https://images.unsplash.com/photo-1641699862936-be9f49b1c38d?w=600&h=800&fit=crop&q=75"},
+  {"id":"co1","cat":"Co-ord Sets","name":"Sunshine Skirt Co-ord","price":119,"sizes":{"S":2,"M":3,"L":2,"XL":1},"img":"https://images.unsplash.com/photo-1574847872646-abff244bbd87?w=600&h=800&fit=crop&q=75"},
+  {"id":"co2","cat":"Co-ord Sets","name":"Indigo Floral Co-ord","price":109,"sizes":{"S":2,"M":2,"L":2,"XL":1},"img":"https://images.unsplash.com/photo-1610202631408-fa6ba0f39ca3?w=600&h=800&fit=crop&q=75"}
 ]

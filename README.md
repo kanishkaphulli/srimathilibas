@@ -20,3 +20,27 @@ The site goes live at `https://kanishkaphulli.github.io/srimathilibas/`.
 
 Without a token, anyone can open the admin page but nobody can save changes. Keep the token private.
 The page saves it only in the browser of the device you use.
+
+## Cloudflare Workers (main site)
+
+The live shop runs at `https://srimathilibas.kanishkaphulli.workers.dev`. To deploy it, run `npx wrangler deploy`.
+`worker.js` adds three things to the static site:
+
+- **Admin login.** `/admin` only opens for the people listed in the `ADMIN_USERS` secret, and stays locked until it's set.
+  ```bash
+  npx wrangler secret put ADMIN_USERS
+  ```
+  Enter the users like this: `kanishka:a-long-password,priya:another-password`. Change a password by running the command again.
+- **Card payments (Stripe).** Fees are 2.65% + NZ$0.30 per NZ card, with no monthly fee. Card payment stays hidden until the key is set.
+  ```bash
+  npx wrangler secret put STRIPE_SECRET_KEY
+  ```
+  Paste the **secret key** from the Stripe dashboard (Developers → API keys). Test with an `sk_test_…` key first, then switch to `sk_live_…`.
+  Paid orders show up in Stripe under Payments, with the order number, name, phone and delivery details.
+- **Fresh data.** `products.json` and `promos.json` are read from GitHub `main`, so admin saves show up without redeploying.
+
+Bank transfer: put your account number in `BANK` near the top of the script in `index.html`. Until you do, customers are told you'll send bank details on WhatsApp.
+
+Delivery fee: it's `SHIPPING` in both `index.html` and `order.js`. Keep the two values the same.
+
+Checks: run `node worker.test.mjs`.

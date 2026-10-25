@@ -35,9 +35,6 @@ table{width:100%;border-collapse:collapse;min-width:820px}
 th{text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}
 td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td img{width:44px;height:56px;object-fit:cover;border-radius:4px;display:block;background:var(--line)}
-.stock{display:flex;align-items:center;gap:4px}
-.stock input{width:64px;text-align:center}
-.stock button{padding:4px 10px}
 .out{color:var(--bad);font-size:.8rem;font-weight:500}
 .promo{display:grid;grid-template-columns:140px 1fr 150px auto auto;gap:8px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
 .promo textarea{grid-column:2/3}
@@ -65,9 +62,9 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
 
   <section aria-labelledby="inv-title">
     <div class="row" style="justify-content:space-between"><h2 id="inv-title">Products &amp; Stock</h2><button id="add-product">+ Add product</button></div>
-    <p class="hint">Stock at 0 shows "Sold out" on the shop. 3 or fewer shows "Only N left". Reduce stock after you confirm each order.</p>
+    <p class="hint">Write sizes and stock like <b>S:2, M:3, L:0</b> (sarees: <b>Free size:5</b>). A size at 0 is greyed out on the shop; all sizes at 0 shows "Sold out". Reduce stock after each paid order.</p>
     <div class="table"><table>
-      <thead><tr><th></th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Stock</th><th>Image URL</th><th></th></tr></thead>
+      <thead><tr><th></th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Sizes : stock</th><th>Image URL</th><th></th></tr></thead>
       <tbody id="products"></tbody>
     </table></div>
   </section>
@@ -117,7 +114,8 @@ function validate({products,promos}){
     const n=`Product ${i+1}`;
     if(!p.name?.trim())return `${n}: name is required`;
     if(!(p.price>=0))return `${n}: price must be 0 or more`;
-    if(!Number.isInteger(p.stock)||p.stock<0)return `${n}: stock must be a whole number, 0 or more`;
+    if(!p.sizes||typeof p.sizes!=='object'||!Object.keys(p.sizes).length)return `${n}: add at least one size, e.g. S:2, M:3`;
+    if(Object.values(p.sizes).some(q=>!Number.isInteger(q)||q<0))return `${n}: sizes must look like S:2, M:3 (whole numbers, 0 or more)`;
     if(!/^https:\/\//.test(p.img||''))return `${n}: image URL must start with https://`;
     if(ids.has(p.id))return `${n}: duplicate id`; ids.add(p.id);
   }
@@ -127,8 +125,13 @@ function validate({products,promos}){
   }
   return '';
 }
-console.assert(validate({products:[{id:'a',name:'x',price:1,stock:0,img:'https://x'}],promos:[]})===''&&
-  validate({products:[{id:'a',name:'x',price:1,stock:-1,img:'https://x'}],promos:[]}).includes('stock'),'validate');
+// "S:2, M:3, Free size:1" <-> {S:2,M:3,"Free size":1}; bad parts become NaN so validate() rejects them
+const parseSizes=s=>Object.fromEntries(s.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.+?)\s*:\s*(\d+)$/);return m?[m[1],+m[2]]:[x,NaN]}));
+const fmtSizes=o=>Object.entries(o||{}).map(([k,v])=>`${k}:${v}`).join(', ');
+const total=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+b,0);
+console.assert(validate({products:[{id:'a',name:'x',price:1,sizes:parseSizes('S:0, Free size:2'),img:'https://x'}],promos:[]})===''&&
+  validate({products:[{id:'a',name:'x',price:1,sizes:parseSizes('S:two'),img:'https://x'}],promos:[]}).includes('sizes')&&
+  fmtSizes(parseSizes('S:1,M : 2'))==='S:1, M:2','validate/sizes');
 
 function render(){
   $('#products').innerHTML=data.products.map((p,i)=>`<tr>
@@ -136,7 +139,7 @@ function render(){
     <td><input data-p="${i}" data-k="name" value="${esc(p.name)}" required aria-label="Name"></td>
     <td><select data-p="${i}" data-k="cat" aria-label="Category">${[...new Set([...CATS,p.cat])].map(c=>`<option${c===p.cat?' selected':''}>${esc(c)}</option>`).join('')}</select></td>
     <td><input data-p="${i}" data-k="price" type="number" min="0" step="1" value="${p.price}" style="width:96px" aria-label="Price"></td>
-    <td><div class="stock"><button data-step="${i}" data-d="-1" aria-label="Decrease stock">−</button><input data-p="${i}" data-k="stock" type="number" min="0" step="1" value="${p.stock}" aria-label="Stock"><button data-step="${i}" data-d="1" aria-label="Increase stock">+</button></div>${p.stock>0?'':'<span class="out">Sold out</span>'}</td>
+    <td><input data-p="${i}" data-k="sizes" value="${esc(fmtSizes(p.sizes))}" placeholder="S:2, M:3, L:1" aria-label="Sizes and stock" style="min-width:170px"><span class="out" data-out="${i}">${total(p)>0?'':'Sold out'}</span></td>
     <td><input data-p="${i}" data-k="img" type="url" value="${esc(p.img)}" aria-label="Image URL"></td>
     <td><button class="danger" data-del-p="${i}">Delete</button></td></tr>`).join('');
   $('#promos').innerHTML=data.promos.map((p,i)=>`<div class="promo">
@@ -152,17 +155,17 @@ function changed(){dirty=true;status('Unsaved changes')}
 document.addEventListener('input',e=>{
   const t=e.target,{p,r,k}=t.dataset; if(!k)return;
   const list=p!==undefined?data.products[p]:r!==undefined?data.promos[r]:null; if(!list)return;
-  list[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?NaN:+t.value):t.value;
+  list[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?NaN:+t.value):k==='sizes'?parseSizes(t.value):t.value;
   if(k==='img')t.closest('tr').querySelector('img').src=t.value;
+  if(k==='sizes')$(`[data-out="${p}"]`).textContent=total(list)>0?'':'Sold out';
   changed();
 });
 document.addEventListener('click',e=>{
   const d=e.target.dataset;
-  if(d.step!==undefined){const p=data.products[d.step];p.stock=Math.max(0,(p.stock||0)+ +d.d);render();changed()}
-  else if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name}"?`)){data.products.splice(d.delP,1);render();changed()}
+  if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name}"?`)){data.products.splice(d.delP,1);render();changed()}
   else if(d.delR!==undefined&&confirm('Delete this promo?')){data.promos.splice(d.delR,1);render();changed()}
 });
-$('#add-product').onclick=()=>{data.products.push({id:'p'+Date.now().toString(36),cat:CATS[0],name:'',price:0,stock:1,img:''});render();changed()};
+$('#add-product').onclick=()=>{data.products.push({id:'p'+Date.now().toString(36),cat:CATS[0],name:'',price:0,sizes:{S:1,M:1,L:1},img:''});render();changed()};
 $('#add-promo').onclick=()=>{data.promos.unshift({id:'r'+Date.now().toString(36),tag:'New',title:'',text:'',until:'',active:true});render();changed()};
 $('#connect').onclick=()=>{token=$('#token').value.trim();try{localStorage.setItem('sl-gh-token',token)}catch{}load()};
 $('#forget').onclick=()=>{token='';$('#token').value='';try{localStorage.removeItem('sl-gh-token')}catch{}load()};

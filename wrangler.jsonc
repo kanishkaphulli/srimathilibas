@@ -1,7 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "srimathilibas",
+  "main": "worker.js",
   "compatibility_date": "2026-10-01",
-  // Static site only: serve the repo root as assets (exclusions in .assetsignore)
-  "assets": { "directory": "." }
+  // Site files are static assets (exclusions in .assetsignore); the Worker only runs for these paths
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/admin*", "/products.json", "/promos.json"]
+  }
 }

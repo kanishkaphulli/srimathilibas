@@ -73,7 +73,26 @@ section{padding:88px 0}
 .price{font-weight:500;color:var(--maroon);margin:4px 0 12px}
 .buy{display:flex;gap:8px}
 select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
-.buy select{width:auto;flex:0 0 auto}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.sizes label{cursor:pointer}
+.sizes input{position:absolute;opacity:0;width:1px}
+.sizes span{display:inline-block;min-width:40px;text-align:center;padding:5px 10px;border:1px solid var(--line);border-radius:6px;font-size:.85rem}
+.sizes input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.sizes input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.sizes input:disabled+span{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+.note{min-height:1.3em;font-size:.82rem;color:var(--gold);margin-bottom:8px}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;flex:0 0 auto}
+.stepper button{width:34px;height:38px;border:0;background:none;color:var(--ink);font-size:1.1rem;cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.stepper output{min-width:22px;text-align:center;font-weight:500}
+.filters .sg-link{border-style:dashed}
+dialog.center{margin:auto;height:auto;max-height:90dvh;width:min(480px,calc(100vw - 32px));border-radius:14px}
+.hint{color:var(--muted);font-size:.88rem;margin:4px 0 14px}
+.sg{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:12px}
+.sg th,.sg td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
+.bank{border:1px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:.92rem}
+.bank span{color:var(--muted)}
 .btn-solid{flex:1;background:var(--maroon);color:var(--surface);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
 .btn-solid:hover{filter:brightness(1.1)}
 .btn-solid:disabled{opacity:.5;cursor:not-allowed}
@@ -227,10 +246,10 @@ footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
         <div class="divider"></div>
       </div>
       <div class="grid steps">
-        <div class="step"><h3>Add to bag</h3><p>Pick your outfit and size, then add it to your bag.</p></div>
+        <div class="step"><h3>Choose</h3><p>Pick your size (see the size guide) and quantity, then add it to your bag.</p></div>
         <div class="step"><h3>Checkout</h3><p>Enter your details and choose Auckland pickup or NZ-wide delivery.</p></div>
-        <div class="step"><h3>Send your order</h3><p>Send it to us on WhatsApp or email in one tap — we confirm stock and payment within 24 hours.</p></div>
-        <div class="step"><h3>Pickup or delivery</h3><p>Pay by bank transfer and collect in Auckland, or we courier it to your door.</p></div>
+        <div class="step"><h3>Pay</h3><p>Pay securely by card, Apple Pay or Google Pay — or by bank transfer using your order number.</p></div>
+        <div class="step"><h3>Pickup or delivery</h3><p>Collect in Auckland or we courier it to your door once payment is in.</p></div>
       </div>
     </div>
   </section>
@@ -253,6 +272,27 @@ footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
 </main>
 
 <footer>© <span id="y">2026</span> Srimathi Libas · Indian Traditional Attire for Women · Auckland, New Zealand</footer>
+<dialog id="size-guide" class="center" aria-labelledby="sg-title">
+  <div class="panel">
+    <div class="panel-head"><h2 id="sg-title">Size Guide</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-body">
+      <p class="hint">Body measurements in inches. Between sizes? Pick the larger one, or add your measurements in the order notes and we'll help.</p>
+      <table class="sg">
+        <thead><tr><th>Size</th><th>Bust</th><th>Waist</th><th>Hip</th></tr></thead>
+        <tbody>
+          <tr><td>XS</td><td>32</td><td>26</td><td>35</td></tr>
+          <tr><td>S</td><td>34</td><td>28</td><td>37</td></tr>
+          <tr><td>M</td><td>36</td><td>30</td><td>39</td></tr>
+          <tr><td>L</td><td>38</td><td>32</td><td>41</td></tr>
+          <tr><td>XL</td><td>40</td><td>34</td><td>43</td></tr>
+          <tr><td>XXL</td><td>42</td><td>36</td><td>45</td></tr>
+        </tbody>
+      </table>
+      <p class="hint">Sarees are free size and come with an unstitched blouse piece.</p>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="bag" aria-labelledby="bag-title">
   <!-- Step 1: bag -->
   <div class="panel" data-step="bag">
@@ -263,37 +303,48 @@ footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
       <button class="btn-solid" id="to-checkout">Checkout</button>
     </div>
   </div>
-  <!-- Step 2: details -->
+  <!-- Step 2: details + payment -->
   <form class="panel" data-step="details" id="checkout" hidden novalidate>
-    <div class="panel-head"><h2>Your Details</h2><button type="button" class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-head"><h2>Checkout</h2><button type="button" class="x" data-close aria-label="Close">×</button></div>
     <div class="panel-body">
-      <label class="field"><span>Full name *</span><input name="name" required autocomplete="name"></label>
-      <label class="field"><span>Phone *</span><input name="phone" type="tel" required autocomplete="tel" pattern="[\d\s\+\(\)\-]{7,}" placeholder="021 123 4567"></label>
-      <label class="field"><span>Email</span><input name="email" type="email" autocomplete="email"></label>
+      <label class="field"><span>Full name *</span><input name="name" required maxlength="80" autocomplete="name"></label>
+      <label class="field"><span>Phone *</span><input name="phone" type="tel" required maxlength="30" autocomplete="tel" pattern="[\d\s\+\(\)\-]{7,}" placeholder="021 123 4567"></label>
+      <label class="field"><span>Email</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
       <fieldset>
         <legend>Pickup or delivery *</legend>
         <label class="opt"><input type="radio" name="method" value="pickup" checked><span>Pickup in Auckland<small>Free — we'll message you the pickup address</small></span></label>
         <label class="opt"><input type="radio" name="method" value="delivery"><span>NZ-wide courier<small id="ship-label"></small></span></label>
       </fieldset>
-      <label class="field" id="addr-field" hidden><span>Delivery address *</span><textarea name="address" rows="3" autocomplete="street-address"></textarea></label>
-      <label class="field"><span>Notes (measurements, event date…)</span><textarea name="notes" rows="2"></textarea></label>
+      <label class="field" id="addr-field" hidden><span>Delivery address *</span><textarea name="address" rows="3" maxlength="300" autocomplete="street-address"></textarea></label>
+      <fieldset>
+        <legend>Payment *</legend>
+        <label class="opt" id="pay-card-opt" hidden><input type="radio" name="pay" value="card"><span>Card, Apple Pay or Google Pay<small>Pay securely now with Stripe</small></span></label>
+        <label class="opt"><input type="radio" name="pay" value="bank" checked><span>Bank transfer<small>Pay from your bank — we'll ship once it arrives</small></span></label>
+      </fieldset>
+      <label class="field"><span>Notes (measurements, event date, promo code…)</span><textarea name="notes" rows="2" maxlength="300"></textarea></label>
       <p class="err" id="form-err" role="alert"></p>
     </div>
     <div class="panel-foot">
       <div class="row"><span>Subtotal</span><span id="co-sub"></span></div>
       <div class="row"><span>Delivery</span><span id="co-ship"></span></div>
       <div class="row total"><span>Total</span><span id="co-total"></span></div>
-      <button class="btn-solid" type="submit">Place order</button>
+      <button class="btn-solid" type="submit" id="place">Place order</button>
       <button class="link" type="button" id="back-to-bag">← Back to bag</button>
     </div>
   </form>
   <!-- Step 3: confirmation -->
   <div class="panel" data-step="done" hidden>
-    <div class="panel-head"><h2>Order Placed</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-head"><h2 id="done-head">Order Placed</h2><button class="x" data-close aria-label="Close">×</button></div>
     <div class="panel-body done">
       <div class="done-mark" aria-hidden="true">✓</div>
-      <h3>Thank you!</h3>
-      <p>Your order <strong id="order-no"></strong> is ready. <strong>One last step:</strong> send it to us so we can confirm stock and share bank transfer details within 24 hours.</p>
+      <h3 id="done-title">Thank you!</h3>
+      <p id="done-text"></p>
+      <div class="bank" id="bank-box" hidden>
+        <div class="row"><span>Account name</span><strong id="bank-name"></strong></div>
+        <div class="row"><span>Account number</span><strong id="bank-acct"></strong></div>
+        <div class="row"><span>Reference</span><strong id="bank-ref"></strong></div>
+        <div class="row"><span>Amount</span><strong id="bank-amt"></strong></div>
+      </div>
       <pre class="summary" id="order-summary"></pre>
     </div>
     <div class="panel-foot">
@@ -306,17 +357,22 @@ footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
 <script type="module">
 document.getElementById('y').textContent=new Date().getFullYear();
 
-const SHOP_PHONE='64210747404', SHOP_EMAIL='Srimathilibasnz@gmail.com', SHIPPING=12;
+const SHOP_PHONE='64210747404', SHOP_EMAIL='Srimathilibasnz@gmail.com';
+const SHIPPING=12; // keep in sync with SHIPPING in order.js, which is what card payments actually charge
+// Fill in the real account before going live; while empty, customers are told details will come on WhatsApp
+const BANK={name:'Srimathi Libas',acct:''};
 // Catalogue and promos are edited in admin.html, which commits these files to GitHub
 const load=f=>fetch(f,{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]);
-const [PRODUCTS,PROMOS]=await Promise.all([load('products.json'),load('promos.json')]);
-const SIZES=['XS','S','M','L','XL','XXL'];
+const [PRODUCTS,PROMOS,PAY]=await Promise.all([load('products.json'),load('promos.json'),fetch('api/payments').then(r=>r.ok?r.json():{}).catch(()=>({}))]);
 const $=s=>document.querySelector(s), byId=id=>PRODUCTS.find(p=>p.id===id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
 const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
 const subtotal=(items,list=PRODUCTS)=>items.reduce((t,i)=>t+list.find(p=>p.id===i.id).price*i.qty,0);
 console.assert(subtotal([{id:'a',qty:2},{id:'b',qty:1}],[{id:'a',price:129},{id:'b',price:109}])===367,'subtotal');
-const inBag=id=>cart.filter(i=>i.id===id).reduce((n,i)=>n+i.qty,0);
+const stockOf=(id,size)=>byId(id)?.sizes?.[size]||0;
+const totalStock=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+b,0);
+const inBag=(id,size)=>cart.filter(i=>i.id===id&&i.size===size).reduce((n,i)=>n+i.qty,0);
+const left=(id,size)=>stockOf(id,size)-inBag(id,size);
 
 // What's New: active promos that haven't expired (NZ date)
 const today=new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'});
@@ -327,37 +383,60 @@ $('#promo-list').innerHTML=live.map(p=>`
   ${p.until?`<small>Until ${new Date(p.until+'T00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long'})}</small>`:''}</article>`).join('');
 
 let cart=[];
-try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>byId(i.id)?.stock>0)}catch{}
-const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag()};
+try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>stockOf(i.id,i.size)>0).map(i=>({...i,qty:Math.min(i.qty,stockOf(i.id,i.size))}))}catch{}
+const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag(); PRODUCTS.forEach(syncCard)};
 
 // Shop grid + filters
 const cats=['All',...new Set(PRODUCTS.map(p=>p.cat))];
-$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('');
+$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('')+'<button class="sg-link" data-guide>📏 Size guide</button>';
 $('.filters').onclick=e=>{
+  if(e.target.dataset.guide!==undefined)return $('#size-guide').showModal();
   if(e.target.tagName!=='BUTTON')return;
-  $('.filters').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===e.target));
+  $('.filters').querySelectorAll('button:not([data-guide])').forEach(b=>b.setAttribute('aria-pressed',b===e.target));
   const c=e.target.textContent;
   document.querySelectorAll('#products .card').forEach(el=>el.hidden=c!=='All'&&el.dataset.cat!==c);
 };
-$('#products').innerHTML=PRODUCTS.map(p=>`
-  <article class="card" data-cat="${esc(p.cat)}">
+$('#products').innerHTML=PRODUCTS.map(p=>{
+  const first=Object.keys(p.sizes||{}).find(s=>p.sizes[s]>0);
+  return `
+  <article class="card" data-cat="${esc(p.cat)}" data-id="${esc(p.id)}">
     <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
     <div class="card-body">
       <div class="cat">${esc(p.cat)}</div><h3>${esc(p.name)}</h3>
-      <div class="price">${nzd(p.price)}${p.stock>0&&p.stock<=3?` <span class="low">· Only ${p.stock} left</span>`:''}</div>
+      <div class="price">${nzd(p.price)}</div>
+      <fieldset class="sizes"><legend class="sr">Size for ${esc(p.name)}</legend>
+        ${Object.entries(p.sizes||{}).map(([s,q])=>`<label><input type="radio" name="sz-${esc(p.id)}" value="${esc(s)}"${q>0?'':' disabled'}${s===first?' checked':''}><span>${esc(s)}</span></label>`).join('')}
+      </fieldset>
+      <div class="note" aria-live="polite"></div>
       <div class="buy">
-        ${p.cat==='Sarees'?'<input type="hidden" value="Free size">':`<select aria-label="Size for ${esc(p.name)}">${SIZES.map(s=>`<option${s==='M'?' selected':''}>${s}</option>`).join('')}</select>`}
-        <button class="btn-solid" data-add="${esc(p.id)}"${p.stock>0?'':' disabled'}>${p.stock>0?'Add to bag':'Sold out'}</button>
+        <div class="stepper"><button type="button" data-step="-1" aria-label="Decrease quantity">−</button><output>1</output><button type="button" data-step="1" aria-label="Increase quantity">+</button></div>
+        <button class="btn-solid" data-add>Add to bag</button>
       </div>
     </div>
-  </article>`).join('')||'<p class="empty">New collection coming soon.</p>';
+  </article>`}).join('')||'<p class="empty">New collection coming soon.</p>';
+
+// Card state: selected size, qty clamped to what's left of that size
+function syncCard(p){
+  const card=document.querySelector(`.card[data-id="${CSS.escape(p.id)}"]`); if(!card)return;
+  const size=card.querySelector('.sizes input:checked')?.value, out=card.querySelector('output');
+  const avail=size?left(p.id,size):0, add=card.querySelector('[data-add]');
+  out.value=Math.max(1,Math.min(+out.value||1,avail||1));
+  add.disabled=avail<1; add.textContent=!totalStock(p)?'Sold out':avail<1?'All in your bag':'Add to bag';
+  card.querySelectorAll('[data-step]').forEach(b=>b.disabled=avail<1||(b.dataset.step>0?+out.value>=avail:+out.value<=1));
+  card.querySelector('.note').textContent=!totalStock(p)?'Sold out — check back soon':size&&stockOf(p.id,size)<=2?`Only ${stockOf(p.id,size)} left in ${size}`:'';
+}
+PRODUCTS.forEach(syncCard);
+$('#products').addEventListener('change',e=>{const c=e.target.closest('.card');if(c)syncCard(byId(c.dataset.id))});
 $('#products').onclick=e=>{
-  const id=e.target.dataset.add; if(!id)return;
-  if(inBag(id)>=byId(id).stock)return alert(`Sorry, only ${byId(id).stock} available.`);
-  const size=e.target.previousElementSibling.value;
-  const hit=cart.find(i=>i.id===id&&i.size===size);
-  hit?hit.qty++:cart.push({id,size,qty:1});
-  save(); openBag('bag');
+  const card=e.target.closest('.card'); if(!card)return;
+  const p=byId(card.dataset.id), out=card.querySelector('output');
+  if(e.target.dataset.step){out.value=+out.value+ +e.target.dataset.step;return syncCard(p)}
+  if(e.target.dataset.add===undefined)return;
+  const size=card.querySelector('.sizes input:checked')?.value, qty=+out.value;
+  if(!size||qty>left(p.id,size))return syncCard(p);
+  const hit=cart.find(i=>i.id===p.id&&i.size===size);
+  hit?hit.qty+=qty:cart.push({id:p.id,size,qty});
+  out.value=1; save(); openBag('bag');
 };
 
 // Bag
@@ -365,7 +444,7 @@ const dlg=$('#bag');
 function show(step){dlg.querySelectorAll('[data-step]').forEach(p=>p.hidden=p.dataset.step!==step)}
 function openBag(step){show(step); if(!dlg.open)dlg.showModal()}
 $('#open-bag').onclick=()=>openBag('bag');
-dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('[data-close]'))dlg.close()});
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-close]'))d.close()}));
 
 function renderBag(){
   $('#bag-count').textContent=cart.reduce((n,i)=>n+i.qty,0);
@@ -374,8 +453,8 @@ function renderBag(){
   $('#bag-lines').innerHTML=cart.length?cart.map((i,k)=>{const p=byId(i.id);return `
     <div class="line">
       <img src="${esc(p.img)}" alt="">
-      <div><strong>${esc(p.name)}</strong><small>Size: ${esc(i.size)}</small>
-        <div class="qty"><button data-q="${k}" data-d="-1" aria-label="Decrease quantity">−</button><span>${i.qty}</span><button data-q="${k}" data-d="1" aria-label="Increase quantity">+</button>
+      <div><strong>${esc(p.name)}</strong><small>Size: ${esc(i.size)} · ${nzd(p.price)} each</small>
+        <div class="qty"><button data-q="${k}" data-d="-1" aria-label="Decrease quantity">−</button><span>${i.qty}</span><button data-q="${k}" data-d="1" aria-label="Increase quantity"${left(i.id,i.size)>0?'':' disabled'}>+</button>
         <button class="link" data-rm="${k}">Remove</button></div></div>
       <div>${nzd(p.price*i.qty)}</div>
     </div>`}).join(''):'<p class="empty">Your bag is empty.</p>';
@@ -384,7 +463,7 @@ $('#bag-lines').onclick=e=>{
   const {q,d,rm}=e.target.dataset;
   if(rm!==undefined)cart.splice(rm,1);
   else if(q!==undefined){
-    if(+d>0&&inBag(cart[q].id)>=byId(cart[q].id).stock)return alert(`Sorry, only ${byId(cart[q].id).stock} available.`);
+    if(+d>0&&left(cart[q].id,cart[q].size)<1)return;
     cart[q].qty+=+d; if(cart[q].qty<1)cart.splice(q,1)}
   else return;
   save();
@@ -393,37 +472,77 @@ $('#bag-lines').onclick=e=>{
 // Checkout
 const form=$('#checkout');
 $('#ship-label').textContent=nzd(SHIPPING)+' — tracked, 2–5 working days';
+if(PAY.card){$('#pay-card-opt').hidden=false; form.querySelector('[value=card]').checked=true}
 function totals(){
   const ship=form.method.value==='delivery'?SHIPPING:0, sub=subtotal(cart);
   $('#addr-field').hidden=!ship; form.address.required=!!ship;
   $('#co-sub').textContent=nzd(sub); $('#co-ship').textContent=ship?nzd(ship):'Free'; $('#co-total').textContent=nzd(sub+ship);
+  $('#place').textContent=form.pay.value==='card'?`Pay ${nzd(sub+ship)}`:'Place order';
   return {sub,ship};
 }
-$('#to-checkout').onclick=()=>{totals(); show('details')};
+$('#to-checkout').onclick=()=>{totals(); $('#form-err').textContent=''; show('details')};
 $('#back-to-bag').onclick=()=>show('bag');
 form.addEventListener('change',totals);
-form.onsubmit=e=>{
+
+function summary(no,f,sub,ship,payLine){
+  return [
+    `New order ${no}`,'',
+    ...cart.map(i=>{const p=byId(i.id);return `• ${p.name} (${i.size}) × ${i.qty} — ${nzd(p.price*i.qty)}`}),
+    '',`Subtotal: ${nzd(sub)}`,`Delivery: ${ship?nzd(ship):'Pickup (free)'}`,`Total: ${nzd(sub+ship)}`,`Payment: ${payLine}`,'',
+    `Name: ${f.name}`,`Phone: ${f.phone}`,f.email?`Email: ${f.email}`:null,
+    ship?`Deliver to: ${f.address}`:'Pickup in Auckland',f.notes?`Notes: ${f.notes}`:null
+  ].filter(l=>l!==null).join('\n');
+}
+function showDone({no,msg,total,paid}){
+  $('#done-head').textContent=paid?'Payment Received':'Order Placed';
+  $('#done-title').textContent='Thank you!';
+  $('#done-text').innerHTML=paid
+    ?`Your payment for order <strong>${esc(no)}</strong> went through. We'll be in touch to arrange pickup or delivery. You can also send us your order on WhatsApp below.`
+    :`Your order <strong>${esc(no)}</strong> is reserved. ${BANK.acct?'Please pay by bank transfer using the details below, then':'Please'} <strong>send us your order</strong> on WhatsApp or email so we can ${BANK.acct?'match your payment':'send you our bank details'}.`;
+  $('#bank-box').hidden=paid||!BANK.acct;
+  $('#bank-name').textContent=BANK.name; $('#bank-acct').textContent=BANK.acct; $('#bank-ref').textContent=no; $('#bank-amt').textContent=nzd(total);
+  $('#order-summary').textContent=msg;
+  $('#send-wa').href=`https://wa.me/${SHOP_PHONE}?text=${encodeURIComponent(msg)}`;
+  $('#send-email').href=`mailto:${SHOP_EMAIL}?subject=${encodeURIComponent('Order '+no)}&body=${encodeURIComponent(msg)}`;
+  openBag('done');
+}
+form.onsubmit=async e=>{
   e.preventDefault();
   const bad=[...form.elements].find(el=>el.willValidate&&!el.checkValidity());
   if(bad){$('#form-err').textContent='Please check: '+bad.closest('label').querySelector('span').textContent.replace(' *','');bad.focus();return}
   if(!cart.length)return show('bag');
   $('#form-err').textContent='';
   const {sub,ship}=totals(), f=Object.fromEntries(new FormData(form));
-  const no='SL-'+new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'}).slice(2).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
-  const msg=[
-    `New order ${no}`,'',
-    ...cart.map(i=>{const p=byId(i.id);return `• ${p.name} (${i.size}) × ${i.qty} — ${nzd(p.price*i.qty)}`}),
-    '',`Subtotal: ${nzd(sub)}`,`Delivery: ${ship?nzd(ship):'Pickup (free)'}`,`Total: ${nzd(sub+ship)}`,'',
-    `Name: ${f.name}`,`Phone: ${f.phone}`,f.email?`Email: ${f.email}`:null,
-    ship?`Deliver to: ${f.address}`:'Pickup in Auckland',f.notes?`Notes: ${f.notes}`:null
-  ].filter(l=>l!==null).join('\n');
-  $('#order-no').textContent=no;
-  $('#order-summary').textContent=msg;
-  $('#send-wa').href=`https://wa.me/${SHOP_PHONE}?text=${encodeURIComponent(msg)}`;
-  $('#send-email').href=`mailto:${SHOP_EMAIL}?subject=${encodeURIComponent('Order '+no)}&body=${encodeURIComponent(msg)}`;
-  cart=[]; save(); form.reset();
-  show('done');
+  const no='SL-'+today.slice(2).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase().padEnd(4,'0');
+  if(f.pay==='card'){
+    $('#place').disabled=true; $('#place').textContent='Opening secure payment…';
+    try{
+      const r=await fetch('api/checkout',{method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({no,items:cart,delivery:f.method,name:f.name,phone:f.phone,email:f.email,address:f.address,notes:f.notes})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.url)throw new Error(j.error||'Card payment is unavailable right now.');
+      try{localStorage.setItem('sl-pending',JSON.stringify({no,msg:summary(no,f,sub,ship,'Card (paid online)'),total:sub+ship}))}catch{}
+      location.href=j.url; return;
+    }catch(err){$('#form-err').textContent=err.message+' You can choose bank transfer instead.'; $('#place').disabled=false; totals(); return}
+  }
+  const msg=summary(no,f,sub,ship,'Bank transfer');
+  cart=[]; save(); form.reset(); if(PAY.card)form.querySelector('[value=card]').checked=true;
+  showDone({no,msg,total:sub+ship,paid:false});
 };
+
+// Back from Stripe: confirm with the server before telling the customer it's paid
+const qs=new URLSearchParams(location.search);
+if(qs.has('paid')||qs.has('cancelled')){
+  history.replaceState(null,'',location.pathname);
+  let pending=null; try{pending=JSON.parse(localStorage.getItem('sl-pending'))}catch{}
+  if(qs.has('paid')){
+    const s=await fetch('api/session?id='+encodeURIComponent(qs.get('paid'))).then(r=>r.ok?r.json():{}).catch(()=>({}));
+    if(s.paid){
+      cart=[]; save(); try{localStorage.removeItem('sl-pending')}catch{}
+      showDone({no:s.no,msg:pending?.no===s.no?pending.msg:`Order ${s.no} — paid by card`,total:pending?.total||0,paid:true});
+    }else{openBag('details'); totals(); $('#form-err').textContent="We couldn't confirm your payment yet. If you were charged, message us on WhatsApp with your order number."}
+  }else{openBag('details'); totals(); $('#form-err').textContent='Payment was cancelled — nothing was charged. Try again or choose bank transfer.'}
+}
 renderBag();
 </script>
 </body>
