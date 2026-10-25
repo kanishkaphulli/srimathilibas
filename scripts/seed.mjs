@@ -8,7 +8,7 @@ const q = (v) => (typeof v === 'number' ? String(v) : `'${String(v ?? '').replac
 
 const lines = [];
 read('products.json').forEach((p, i) =>
-  lines.push(`INSERT OR IGNORE INTO products (id,cat,name,price,img,sizes,sort) VALUES (${[p.id, p.cat, p.name, p.price, p.img, JSON.stringify(p.sizes), i].map(q).join(',')});`));
+  lines.push(`INSERT OR IGNORE INTO products (id,cat,name,price,sizes,colours,sort) VALUES (${[p.id, p.cat, p.name, p.price, JSON.stringify(p.sizes), JSON.stringify(p.colours), i].map(q).join(',')});`));
 read('promos.json').forEach((p, i) =>
   lines.push(`INSERT OR IGNORE INTO promos (id,tag,title,text,until,active,sort) VALUES (${[p.id, p.tag, p.title, p.text, p.until, p.active ? 1 : 0, i].map(q).join(',')});`));
 console.log(lines.join('\n'));

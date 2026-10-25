@@ -74,6 +74,19 @@ section{padding:88px 0}
 .buy{display:flex;gap:8px}
 select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.gal{position:relative}
+.gal img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--line)}
+.gnav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:#fffc;color:#2b1a1a;font-size:1.4rem;line-height:1;cursor:pointer;box-shadow:0 1px 4px #0003}
+.gnav.prev{left:8px}.gnav.next{right:8px}
+.gcount{position:absolute;right:8px;bottom:8px;background:#0008;color:#fff;font-size:.75rem;border-radius:999px;padding:1px 8px}
+.gcount:empty{display:none}
+.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.colours label{cursor:pointer;display:inline-flex}
+.colours input{position:absolute;opacity:0;width:1px}
+.colours i{width:24px;height:24px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.colours input:checked+i{box-shadow:0 0 0 2px var(--ink)}
+.colours input:focus-visible+i{outline:2px solid var(--gold);outline-offset:3px}
+.colours .cname{font-size:.85rem;color:var(--muted)}
 .sizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
 .sizes label{cursor:pointer}
 .sizes input{position:absolute;opacity:0;width:1px}
@@ -369,10 +382,14 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
 const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
 const subtotal=(items,list=PRODUCTS)=>items.reduce((t,i)=>t+list.find(p=>p.id===i.id).price*i.qty,0);
 console.assert(subtotal([{id:'a',qty:2},{id:'b',qty:1}],[{id:'a',price:129},{id:'b',price:109}])===367,'subtotal');
-const stockOf=(id,size)=>byId(id)?.sizes?.[size]||0;
-const totalStock=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+b,0);
-const inBag=(id,size)=>cart.filter(i=>i.id===id&&i.size===size).reduce((n,i)=>n+i.qty,0);
-const left=(id,size)=>stockOf(id,size)-inBag(id,size);
+const colourOf=(p,name)=>p?.colours?.find(c=>c.name===name);
+const stockOf=(id,colour,size)=>colourOf(byId(id),colour)?.stock?.[size]||0;
+const colourTotal=(p,c)=>p.sizes.reduce((t,s)=>t+(c.stock[s]||0),0);
+const totalStock=p=>p.colours.reduce((t,c)=>t+colourTotal(p,c),0);
+const inBag=(id,colour,size)=>cart.filter(i=>i.id===id&&i.colour===colour&&i.size===size).reduce((n,i)=>n+i.qty,0);
+const left=(id,colour,size)=>stockOf(id,colour,size)-inBag(id,colour,size);
+// Same wording as itemName() in order.js: colour only named when there's a choice
+const label=(p,i)=>`${p.name}${p.colours.length>1?' — '+i.colour:''} (${i.size})`;
 
 // What's New: active promos that haven't expired (NZ date)
 const today=new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'});
@@ -383,7 +400,7 @@ $('#promo-list').innerHTML=live.map(p=>`
   ${p.until?`<small>Until ${new Date(p.until+'T00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long'})}</small>`:''}</article>`).join('');
 
 let cart=[];
-try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>stockOf(i.id,i.size)>0).map(i=>({...i,qty:Math.min(i.qty,stockOf(i.id,i.size))}))}catch{}
+try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>stockOf(i.id,i.colour,i.size)>0).map(i=>({...i,qty:Math.min(i.qty,stockOf(i.id,i.colour,i.size))}))}catch{}
 const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag(); PRODUCTS.forEach(syncCard)};
 
 // Shop grid + filters
@@ -397,15 +414,24 @@ $('.filters').onclick=e=>{
   document.querySelectorAll('#products .card').forEach(el=>el.hidden=c!=='All'&&el.dataset.cat!==c);
 };
 $('#products').innerHTML=PRODUCTS.map(p=>{
-  const first=Object.keys(p.sizes||{}).find(s=>p.sizes[s]>0);
+  const first=p.colours.find(c=>colourTotal(p,c)>0)||p.colours[0];
   return `
   <article class="card" data-cat="${esc(p.cat)}" data-id="${esc(p.id)}">
-    <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
+    <div class="gal" data-ph="0">
+      <img src="${esc(first.photos[0])}" alt="${esc(p.name)} in ${esc(first.name)}" loading="lazy">
+      <button type="button" class="gnav prev" data-nav="-1" aria-label="Previous photo">‹</button>
+      <button type="button" class="gnav next" data-nav="1" aria-label="Next photo">›</button>
+      <span class="gcount"></span>
+    </div>
     <div class="card-body">
       <div class="cat">${esc(p.cat)}</div><h3>${esc(p.name)}</h3>
       <div class="price">${nzd(p.price)}</div>
+      <fieldset class="colours"${p.colours.length>1?'':' hidden'}><legend class="sr">Colour for ${esc(p.name)}</legend>
+        ${p.colours.map(c=>`<label title="${esc(c.name)}"><input type="radio" name="col-${esc(p.id)}" value="${esc(c.name)}"${c===first?' checked':''}><i style="background:${esc(c.hex)}"></i><span class="sr">${esc(c.name)}</span></label>`).join('')}
+        <span class="cname"></span>
+      </fieldset>
       <fieldset class="sizes"><legend class="sr">Size for ${esc(p.name)}</legend>
-        ${Object.entries(p.sizes||{}).map(([s,q])=>`<label><input type="radio" name="sz-${esc(p.id)}" value="${esc(s)}"${q>0?'':' disabled'}${s===first?' checked':''}><span>${esc(s)}</span></label>`).join('')}
+        ${p.sizes.map(s=>`<label><input type="radio" name="sz-${esc(p.id)}" value="${esc(s)}"><span>${esc(s)}</span></label>`).join('')}
       </fieldset>
       <div class="note" aria-live="polite"></div>
       <div class="buy">
@@ -415,27 +441,41 @@ $('#products').innerHTML=PRODUCTS.map(p=>{
     </div>
   </article>`}).join('')||'<p class="empty">New collection coming soon.</p>';
 
-// Card state: selected size, qty clamped to what's left of that size
-function syncCard(p){
+// Card state: chosen colour (photos + which sizes are in stock), size, and qty clamped to what's left
+function syncCard(p,colourChanged){
   const card=document.querySelector(`.card[data-id="${CSS.escape(p.id)}"]`); if(!card)return;
+  const colour=card.querySelector('.colours input:checked')?.value, c=colourOf(p,colour);
+  const gal=card.querySelector('.gal');
+  if(colourChanged)gal.dataset.ph=0;
+  const ph=Math.min(+gal.dataset.ph||0,c.photos.length-1);
+  const img=gal.querySelector('img'); img.src=c.photos[ph]; img.alt=`${p.name} in ${c.name}, photo ${ph+1} of ${c.photos.length}`;
+  gal.querySelectorAll('.gnav').forEach(b=>b.hidden=c.photos.length<2);
+  gal.querySelector('.gcount').textContent=c.photos.length>1?`${ph+1}/${c.photos.length}`:'';
+  card.querySelector('.colours .cname').textContent=c.name;
+  const radios=[...card.querySelectorAll('.sizes input')];
+  radios.forEach(r=>r.disabled=!(c.stock[r.value]>0));
+  if(!card.querySelector('.sizes input:checked:not(:disabled)')){const r=radios.find(r=>!r.disabled); radios.forEach(x=>x.checked=x===r)}
   const size=card.querySelector('.sizes input:checked')?.value, out=card.querySelector('output');
-  const avail=size?left(p.id,size):0, add=card.querySelector('[data-add]');
+  const avail=size?left(p.id,colour,size):0, add=card.querySelector('[data-add]');
   out.value=Math.max(1,Math.min(+out.value||1,avail||1));
-  add.disabled=avail<1; add.textContent=!totalStock(p)?'Sold out':avail<1?'All in your bag':'Add to bag';
+  add.disabled=avail<1; add.textContent=!totalStock(p)?'Sold out':!colourTotal(p,c)?'Sold out in this colour':avail<1?'All in your bag':'Add to bag';
   card.querySelectorAll('[data-step]').forEach(b=>b.disabled=avail<1||(b.dataset.step>0?+out.value>=avail:+out.value<=1));
-  card.querySelector('.note').textContent=!totalStock(p)?'Sold out — check back soon':size&&stockOf(p.id,size)<=2?`Only ${stockOf(p.id,size)} left in ${size}`:'';
+  const n=size?stockOf(p.id,colour,size):0;
+  card.querySelector('.note').textContent=!totalStock(p)?'Sold out — check back soon':size&&n<=2?`Only ${n} left in ${size}`:'';
 }
-PRODUCTS.forEach(syncCard);
-$('#products').addEventListener('change',e=>{const c=e.target.closest('.card');if(c)syncCard(byId(c.dataset.id))});
+PRODUCTS.forEach(p=>syncCard(p,true));
+$('#products').addEventListener('change',e=>{const c=e.target.closest('.card');if(c)syncCard(byId(c.dataset.id),e.target.closest('.colours'))});
 $('#products').onclick=e=>{
   const card=e.target.closest('.card'); if(!card)return;
   const p=byId(card.dataset.id), out=card.querySelector('output');
+  const colour=card.querySelector('.colours input:checked')?.value;
+  if(e.target.dataset.nav){const g=card.querySelector('.gal'), n=colourOf(p,colour).photos.length; g.dataset.ph=((+g.dataset.ph||0)+ +e.target.dataset.nav+n)%n; return syncCard(p)}
   if(e.target.dataset.step){out.value=+out.value+ +e.target.dataset.step;return syncCard(p)}
   if(e.target.dataset.add===undefined)return;
   const size=card.querySelector('.sizes input:checked')?.value, qty=+out.value;
-  if(!size||qty>left(p.id,size))return syncCard(p);
-  const hit=cart.find(i=>i.id===p.id&&i.size===size);
-  hit?hit.qty+=qty:cart.push({id:p.id,size,qty});
+  if(!size||qty>left(p.id,colour,size))return syncCard(p);
+  const hit=cart.find(i=>i.id===p.id&&i.colour===colour&&i.size===size);
+  hit?hit.qty+=qty:cart.push({id:p.id,colour,size,qty});
   out.value=1; save(); openBag('bag');
 };
 
@@ -452,9 +492,9 @@ function renderBag(){
   $('#to-checkout').disabled=!cart.length;
   $('#bag-lines').innerHTML=cart.length?cart.map((i,k)=>{const p=byId(i.id);return `
     <div class="line">
-      <img src="${esc(p.img)}" alt="">
-      <div><strong>${esc(p.name)}</strong><small>Size: ${esc(i.size)} · ${nzd(p.price)} each</small>
-        <div class="qty"><button data-q="${k}" data-d="-1" aria-label="Decrease quantity">−</button><span>${i.qty}</span><button data-q="${k}" data-d="1" aria-label="Increase quantity"${left(i.id,i.size)>0?'':' disabled'}>+</button>
+      <img src="${esc(colourOf(p,i.colour)?.photos[0])}" alt="">
+      <div><strong>${esc(p.name)}</strong><small>${p.colours.length>1?'Colour: '+esc(i.colour)+' · ':''}Size: ${esc(i.size)} · ${nzd(p.price)} each</small>
+        <div class="qty"><button data-q="${k}" data-d="-1" aria-label="Decrease quantity">−</button><span>${i.qty}</span><button data-q="${k}" data-d="1" aria-label="Increase quantity"${left(i.id,i.colour,i.size)>0?'':' disabled'}>+</button>
         <button class="link" data-rm="${k}">Remove</button></div></div>
       <div>${nzd(p.price*i.qty)}</div>
     </div>`}).join(''):'<p class="empty">Your bag is empty.</p>';
@@ -463,7 +503,7 @@ $('#bag-lines').onclick=e=>{
   const {q,d,rm}=e.target.dataset;
   if(rm!==undefined)cart.splice(rm,1);
   else if(q!==undefined){
-    if(+d>0&&left(cart[q].id,cart[q].size)<1)return;
+    if(+d>0&&left(cart[q].id,cart[q].colour,cart[q].size)<1)return;
     cart[q].qty+=+d; if(cart[q].qty<1)cart.splice(q,1)}
   else return;
   save();
@@ -487,7 +527,7 @@ form.addEventListener('change',totals);
 function summary(no,f,sub,ship,payLine){
   return [
     `New order ${no}`,'',
-    ...cart.map(i=>{const p=byId(i.id);return `• ${p.name} (${i.size}) × ${i.qty} — ${nzd(p.price*i.qty)}`}),
+    ...cart.map(i=>{const p=byId(i.id);return `• ${label(p,i)} × ${i.qty} — ${nzd(p.price*i.qty)}`}),
     '',`Subtotal: ${nzd(sub)}`,`Delivery: ${ship?nzd(ship):'Pickup (free)'}`,`Total: ${nzd(sub+ship)}`,`Payment: ${payLine}`,'',
     `Name: ${f.name}`,`Phone: ${f.phone}`,f.email?`Email: ${f.email}`:null,
     ship?`Deliver to: ${f.address}`:'Pickup in Auckland',f.notes?`Notes: ${f.notes}`:null

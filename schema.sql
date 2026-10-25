@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS products (
   cat TEXT NOT NULL,
   name TEXT NOT NULL,
   price REAL NOT NULL,
-  img TEXT NOT NULL,
-  sizes TEXT NOT NULL,          -- JSON object, size -> stock, e.g. {"S":2,"M":3}
+  sizes TEXT NOT NULL,          -- JSON array of size names, e.g. ["S","M","L"]
+  colours TEXT NOT NULL,        -- JSON array of {name, hex, photos:[url...], stock:{size: qty}}
   sort INTEGER NOT NULL DEFAULT 0
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery TEXT NOT NULL,        -- pickup | delivery
   address TEXT NOT NULL DEFAULT '',
   notes TEXT NOT NULL DEFAULT '',
-  items TEXT NOT NULL,           -- JSON array of {id,size,qty,name,price}
+  items TEXT NOT NULL,           -- JSON array of {id,colour,size,qty,name,price}
   subtotal REAL NOT NULL,
   shipping REAL NOT NULL,
   total REAL NOT NULL,

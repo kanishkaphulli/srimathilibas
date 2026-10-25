@@ -37,6 +37,43 @@ td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td img{width:44px;height:56px;object-fit:cover;border-radius:4px;display:block;background:var(--line)}
 .out{color:var(--bad);font-size:.8rem;font-weight:500}
 small{color:var(--muted)}
+h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;font-weight:500}
+details.prod{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--surface)}
+details.prod[open]{border-color:var(--gold)}
+details.prod summary{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;list-style:none}
+details.prod summary::-webkit-details-marker{display:none}
+details.prod summary img{width:40px;height:52px;object-fit:cover;border-radius:4px;background:var(--line)}
+.pn{flex:1;display:grid;min-width:0}
+.pn strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.swatches{display:flex;gap:4px}
+.swatches i,.plabel i{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);display:inline-block}
+.instock{color:var(--ok);font-size:.85rem;white-space:nowrap}
+.pbody{padding:4px 16px 16px;border-top:1px solid var(--line)}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}
+.grid3 label{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+@media (max-width:640px){.grid3{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px 4px 2px 12px;font-size:.88rem}
+.chip button{border:0;padding:0 6px;font-size:1rem;color:var(--muted)}
+table.stock{min-width:0;width:auto}
+table.stock th,table.stock td{padding:6px;text-align:center}
+table.stock th:first-child,table.stock td:first-child{text-align:left}
+.cname{display:flex;gap:6px;align-items:center}
+.cname input[type=color]{width:34px;height:34px;padding:2px;flex:0 0 auto}
+.cname input:not([type=color]){min-width:120px}
+input.qty{width:64px;text-align:center}
+.tot{font-weight:500}
+.photos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.plabel{display:flex;align-items:center;gap:6px;min-width:110px;font-size:.9rem}
+.photos figure{position:relative;margin:0}
+.photos figure img{width:64px;height:84px;object-fit:cover;border-radius:6px;display:block;background:var(--line)}
+.photos figure button{position:absolute;top:2px;padding:0;width:22px;height:22px;border-radius:50%;background:var(--surface);font-size:.8rem;line-height:1}
+.photos figure button[data-act=rm-photo]{right:2px}
+.photos figure button[data-act=main]{left:2px}
+.photos .main{position:absolute;left:2px;bottom:2px;font-size:.65rem;background:var(--gold);color:#fff;border-radius:4px;padding:0 4px}
+.addph{height:84px;border-style:dashed;border-radius:6px}
+.report{border:1px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:.9rem}
+.report ul{margin:4px 0 8px 18px;padding:0}
 .ph{display:flex;align-items:center;gap:8px}
 .ph button{padding:4px 10px;font-size:.8rem}
 .acts{white-space:nowrap}
@@ -79,12 +116,17 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
   </section>
 
   <section aria-labelledby="inv-title">
-    <div class="row" style="justify-content:space-between"><h2 id="inv-title">Products &amp; Stock</h2><button id="add-product">+ Add product</button></div>
-    <p class="hint">Write sizes and stock like <b>S:2, M:3, L:0</b> (sarees: <b>Free size:5</b>). A size at 0 is greyed out on the shop; all sizes at 0 shows "Sold out". Stock goes down by itself when an order is paid.</p>
-    <div class="table"><table>
-      <thead><tr><th>Photo</th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Sizes : stock</th><th></th></tr></thead>
-      <tbody id="products"></tbody>
-    </table></div>
+    <div class="row" style="justify-content:space-between">
+      <h2 id="inv-title">Products &amp; Stock</h2>
+      <div class="row">
+        <button id="sheet-down">⬇ Download stock sheet</button>
+        <button id="sheet-up">⬆ Upload stock sheet</button>
+        <button id="add-product" class="primary">+ Add product</button>
+      </div>
+    </div>
+    <p class="hint">Click a product to edit it. Each colour has its own photos and stock per size. To update lots of stock at once, download the sheet, edit it in Excel or Google Sheets, then upload it (.xlsx or .csv). Blank cells are left as they are.</p>
+    <div id="sheet-report" class="report" hidden></div>
+    <div id="products"></div>
   </section>
 
   <section aria-labelledby="promo-title">
@@ -94,17 +136,22 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
   </section>
 </main>
 
-<input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+<input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple hidden>
+<input type="file" id="sheet-file" accept=".xlsx,.xls,.csv" hidden>
 <div class="bar"><div class="wrap"><span id="status" role="status">Loading…</span><button id="save" class="primary">Save &amp; publish</button></div></div>
 
 <script type="module">
+import { stockRows, applyStockSheet } from '/stock-sheet.js';
+
 const CATS=['Lehengas','Ethnic Suits','Sarees','Co-ord Sets'];
+const COMMON_SIZES=['XS','S','M','L','XL','XXL','Free size'];
 const LABEL={pending_payment:'Card not finished',awaiting_payment:'Awaiting transfer',paid:'Paid',shipped:'Sent',cancelled:'Cancelled'};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
 const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
 const status=(t,cls='')=>{$('#status').textContent=t;$('#status').className=cls};
 let dirty=false, data={products:[],promos:[],version:0}, orders=[];
+const open=new Set(); // product ids whose editor is expanded
 
 async function api(path,opts={}){
   // location.origin, not a relative URL: Chrome refuses relative fetches when the page URL holds a login (user:pass@)
@@ -117,21 +164,56 @@ async function load(){
   try{data=await api('data'); dirty=false; render(); status('Loaded — up to date.','ok')}
   catch(e){status('Could not load: '+e.message,'bad')}
 }
+function changed(){dirty=true;status('Unsaved changes — click Save & publish')}
+const totalStock=p=>p.colours.reduce((t,c)=>t+p.sizes.reduce((u,s)=>u+(c.stock[s]||0),0),0);
 
-// "S:2, M:3, Free size:1" <-> {S:2,M:3,"Free size":1}; bad parts become null so the server rejects them
-const parseSizes=s=>Object.fromEntries(s.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.+?)\s*:\s*(\d+)$/);return m?[m[1],+m[2]]:[x,null]}));
-const fmtSizes=o=>Object.entries(o||{}).map(([k,v])=>`${k}:${v}`).join(', ');
-const total=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+(b||0),0);
-console.assert(fmtSizes(parseSizes('S:1,M : 2'))==='S:1, M:2'&&parseSizes('S:two').S===null,'sizes');
-
+// ---- Products ----
 function render(){
-  $('#products').innerHTML=data.products.map((p,i)=>`<tr>
-    <td><div class="ph"><img src="${esc(p.img)}" alt=""><button data-up="${i}">${p.img?'Change':'Upload'}</button></div></td>
-    <td><input data-p="${i}" data-k="name" value="${esc(p.name)}" required aria-label="Name"></td>
-    <td><select data-p="${i}" data-k="cat" aria-label="Category">${[...new Set([...CATS,p.cat])].map(c=>`<option${c===p.cat?' selected':''}>${esc(c)}</option>`).join('')}</select></td>
-    <td><input data-p="${i}" data-k="price" type="number" min="0" step="1" value="${p.price}" style="width:96px" aria-label="Price"></td>
-    <td><input data-p="${i}" data-k="sizes" value="${esc(fmtSizes(p.sizes))}" placeholder="S:2, M:3, L:1" aria-label="Sizes and stock" style="min-width:170px"><span class="out" data-out="${i}">${total(p)>0?'':'Sold out'}</span></td>
-    <td><button class="danger" data-del-p="${i}">Delete</button></td></tr>`).join('');
+  $('#products').innerHTML=data.products.map((p,i)=>{
+    const total=totalStock(p), thumb=p.colours[0]?.photos[0]||'';
+    return `<details class="prod" data-i="${i}"${open.has(p.id)?' open':''}>
+    <summary>
+      <img src="${esc(thumb)}" alt="">
+      <span class="pn"><strong>${esc(p.name)||'<em>New product</em>'}</strong><small>${esc(p.cat)} · ${nzd(p.price||0)} · ${p.colours.length} colour${p.colours.length===1?'':'s'}</small></span>
+      <span class="swatches">${p.colours.map(c=>`<i style="background:${esc(c.hex)}" title="${esc(c.name)}"></i>`).join('')}</span>
+      <span class="${total?'instock':'out'}">${total?total+' in stock':'Sold out'}</span>
+    </summary>
+    <div class="pbody">
+      <div class="grid3">
+        <label>Name<input data-f="name" value="${esc(p.name)}" required></label>
+        <label>Category<select data-f="cat">${[...new Set([...CATS,p.cat])].map(c=>`<option${c===p.cat?' selected':''}>${esc(c)}</option>`).join('')}</select></label>
+        <label>Price (NZD)<input data-f="price" type="number" min="0" step="1" value="${p.price}"></label>
+      </div>
+
+      <h3>Sizes</h3>
+      <div class="chips">
+        ${p.sizes.map((s,si)=>`<span class="chip">${esc(s)}<button data-act="rm-size" data-s="${si}" aria-label="Remove size ${esc(s)}">×</button></span>`).join('')}
+        <select data-act="add-size" aria-label="Add a size" style="width:auto"><option value="">+ Add size</option>${COMMON_SIZES.filter(s=>!p.sizes.includes(s)).map(s=>`<option>${s}</option>`).join('')}<option value="__other">Other…</option></select>
+      </div>
+
+      <h3>Stock by colour and size</h3>
+      <div class="table"><table class="stock">
+        <thead><tr><th>Colour</th>${p.sizes.map(s=>`<th>${esc(s)}</th>`).join('')}<th>Total</th><th></th></tr></thead>
+        <tbody>${p.colours.map((c,ci)=>`<tr>
+          <td><div class="cname"><input type="color" data-c="${ci}" data-f="hex" value="${esc(c.hex)}" aria-label="Swatch for ${esc(c.name)}"><input data-c="${ci}" data-f="cname" value="${esc(c.name)}" aria-label="Colour name" required></div></td>
+          ${p.sizes.map(s=>`<td><input class="qty" type="number" min="0" step="1" data-c="${ci}" data-size="${esc(s)}" value="${c.stock[s]??0}" aria-label="${esc(c.name)} ${esc(s)} stock"></td>`).join('')}
+          <td class="tot">${p.sizes.reduce((t,s)=>t+(c.stock[s]||0),0)}</td>
+          <td>${p.colours.length>1?`<button class="danger" data-act="rm-colour" data-c="${ci}">Remove</button>`:''}</td></tr>`).join('')}
+        </tbody>
+      </table></div>
+      <button data-act="add-colour">+ Add colour</button>
+
+      <h3>Photos</h3>
+      ${p.colours.map((c,ci)=>`<div class="photos">
+        <span class="plabel"><i style="background:${esc(c.hex)}"></i>${esc(c.name)}</span>
+        ${c.photos.map((u,pi)=>`<figure><img src="${esc(u)}" alt="">${pi?`<button data-act="main" data-c="${ci}" data-ph="${pi}" title="Make main photo">★</button>`:'<b class="main">Main</b>'}<button data-act="rm-photo" data-c="${ci}" data-ph="${pi}" aria-label="Remove photo">×</button></figure>`).join('')}
+        ${c.photos.length<8?`<button class="addph" data-act="upload" data-c="${ci}">+ Add photos</button>`:''}
+        ${c.photos.length?'':'<span class="out">Needs a photo</span>'}
+      </div>`).join('')}
+
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="danger" data-act="rm-product">Delete product</button></div>
+    </div></details>`}).join('')||'<p class="hint">No products yet.</p>';
+
   $('#promos').innerHTML=data.promos.map((p,i)=>`<div class="promo">
     <input data-r="${i}" data-k="tag" value="${esc(p.tag)}" placeholder="Label e.g. Sale" aria-label="Label">
     <input data-r="${i}" data-k="title" value="${esc(p.title)}" placeholder="Headline" required aria-label="Headline">
@@ -140,34 +222,111 @@ function render(){
     <button class="danger" data-del-r="${i}">Delete</button>
     <textarea data-r="${i}" data-k="text" rows="2" placeholder="Details shown to customers" aria-label="Details">${esc(p.text)}</textarea></div>`).join('')||'<p class="hint">No promos yet.</p>';
 }
-function changed(){dirty=true;status('Unsaved changes')}
+const prodOf=el=>{const d=el.closest('details.prod');return d?data.products[d.dataset.i]:null};
 
-document.addEventListener('input',e=>{
-  const t=e.target,{p,r,k}=t.dataset; if(!k)return;
-  const item=p!==undefined?data.products[p]:r!==undefined?data.promos[r]:null; if(!item)return;
-  item[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?null:+t.value):k==='sizes'?parseSizes(t.value):t.value;
-  if(k==='sizes')$(`[data-out="${p}"]`).textContent=total(item)>0?'':'Sold out';
+$('#products').addEventListener('toggle',e=>{const p=prodOf(e.target); if(p)e.target.open?open.add(p.id):open.delete(p.id)},true);
+$('#products').addEventListener('input',e=>{
+  const t=e.target, p=prodOf(t); if(!p)return;
+  const c=t.dataset.c!==undefined?p.colours[t.dataset.c]:null;
+  if(t.dataset.size!==undefined){c.stock[t.dataset.size]=t.value===''?null:+t.value; t.closest('tr').querySelector('.tot').textContent=p.sizes.reduce((a,s)=>a+(c.stock[s]||0),0)}
+  else if(t.dataset.f==='hex')c.hex=t.value;
+  else if(t.dataset.f==='cname')c.name=t.value;
+  else if(t.dataset.f==='price')p.price=t.value===''?null:+t.value;
+  else if(t.dataset.f)p[t.dataset.f]=t.value;
   changed();
 });
-
-// Photo upload: pick a file, it goes to Cloudflare storage, and the product's photo is set to it
-let upFor=null;
-document.addEventListener('click',e=>{
-  const d=e.target.dataset;
-  if(d.up!==undefined){upFor=+d.up; $('#file').value=''; $('#file').click()}
-  else if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name||'this product'}"?`)){data.products.splice(d.delP,1);render();changed()}
-  else if(d.delR!==undefined&&confirm('Delete this promo?')){data.promos.splice(d.delR,1);render();changed()}
-  else if(d.set)setStatus(d.no,d.set);
+$('#products').addEventListener('change',e=>{
+  const t=e.target, p=prodOf(t); if(!p||t.dataset.act!=='add-size'||!t.value)return;
+  let s=t.value; if(s==='__other')s=(prompt('New size name (e.g. 3XL, 38, 7-8 yrs):')||'').trim();
+  if(s&&!p.sizes.includes(s)){if(/["\\]/.test(s))return status('Size names can’t contain quotes','bad'); p.sizes.push(s); p.colours.forEach(c=>c.stock[s]=0); changed()}
+  render();
 });
+$('#products').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b||b.tagName==='SELECT')return;
+  const p=prodOf(b); if(!p)return; e.preventDefault();
+  const ci=+b.dataset.c, c=p.colours[ci];
+  switch(b.dataset.act){
+    case 'rm-size': {const s=p.sizes[b.dataset.s]; if(!confirm(`Remove size ${s} and its stock from ${p.name||'this product'}?`))return; p.sizes.splice(b.dataset.s,1); p.colours.forEach(c=>delete c.stock[s]); break}
+    case 'add-colour': p.colours.push({name:'',hex:'#888888',photos:[],stock:Object.fromEntries(p.sizes.map(s=>[s,0]))}); break;
+    case 'rm-colour': if(!confirm(`Remove colour "${c.name}" with its photos and stock?`))return; p.colours.splice(ci,1); break;
+    case 'main': c.photos.unshift(...c.photos.splice(+b.dataset.ph,1)); break;
+    case 'rm-photo': c.photos.splice(+b.dataset.ph,1); break;
+    case 'upload': upFor={p,c}; $('#file').value=''; $('#file').click(); return;
+    case 'rm-product': if(!confirm(`Delete "${p.name||'this product'}"?`))return; data.products.splice(data.products.indexOf(p),1); break;
+  }
+  render(); changed();
+});
+
+// Photo upload: several files at once, each stored in Cloudflare, added to that colour
+let upFor=null;
 $('#file').onchange=async()=>{
-  const f=$('#file').files[0]; if(!f||upFor===null)return;
-  status('Uploading photo…');
-  try{const {url}=await api('photo',{method:'POST',body:f}); data.products[upFor].img=url; render(); changed(); status('Photo uploaded — click Save & publish to show it on the shop.','ok')}
-  catch(e){status('Photo not uploaded: '+e.message,'bad')}
+  const files=[...$('#file').files]; if(!files.length||!upFor)return;
+  const {c}=upFor, room=8-c.photos.length;
+  if(files.length>room)status(`Only ${room} more photo${room===1?'':'s'} fit for this colour (8 max) — uploading the first ${room}.`,'bad');
+  let done=0;
+  for(const f of files.slice(0,room)){
+    status(`Uploading photo ${++done} of ${Math.min(files.length,room)}…`);
+    try{const {url}=await api('photo',{method:'POST',body:f}); c.photos.push(url); render()}
+    catch(e){return status(`Photo "${f.name}" not uploaded: ${e.message}`,'bad')}
+  }
+  changed(); status('Photos uploaded — click Save & publish to show them on the shop.','ok');
 };
 
-$('#add-product').onclick=()=>{data.products.push({id:'p'+Date.now().toString(36),cat:CATS[0],name:'',price:0,sizes:{S:1,M:1,L:1},img:''});render();changed()};
+$('#add-product').onclick=()=>{
+  const id='p'+Date.now().toString(36);
+  data.products.unshift({id,cat:CATS[0],name:'',price:0,sizes:['S','M','L'],colours:[{name:'As shown',hex:'#7a1f2b',photos:[],stock:{S:0,M:0,L:0}}]});
+  open.add(id); render(); changed();
+};
+
+// ---- Stock spreadsheet (SheetJS loaded only when needed) ----
+let xlsx=null;
+function loadXlsx(){
+  return xlsx??=new Promise((ok,fail)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.integrity='sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT'; s.crossOrigin='anonymous';
+    s.onload=()=>ok(window.XLSX); s.onerror=()=>{xlsx=null;fail(new Error('Could not load the spreadsheet tool — check your connection'))};
+    document.head.append(s);
+  });
+}
+$('#sheet-down').onclick=async()=>{
+  try{
+    const X=await loadXlsx(), ws=X.utils.aoa_to_sheet(stockRows(data.products)), wb=X.utils.book_new();
+    ws['!cols']=[{wch:12},{wch:28},{wch:14}];
+    X.utils.book_append_sheet(wb,ws,'Stock');
+    X.writeFile(wb,`srimathi-stock-${new Date().toISOString().slice(0,10)}.xlsx`);
+  }catch(e){status(e.message,'bad')}
+};
+$('#sheet-up').onclick=()=>{$('#sheet-file').value='';$('#sheet-file').click()};
+$('#sheet-file').onchange=async()=>{
+  const f=$('#sheet-file').files[0]; if(!f)return;
+  try{
+    const X=await loadXlsx(), wb=X.read(await f.arrayBuffer());
+    const rows=X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:true});
+    const r=applyStockSheet(data.products,rows);
+    data.products=r.products; render();
+    const list=(t,a)=>a.length?`<p><b>${t}</b></p><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+    $('#sheet-report').innerHTML=`<p><b>${esc(f.name)}:</b> ${r.changed} stock number${r.changed===1?'':'s'} changed. Check below, then click <b>Save &amp; publish</b>.</p>`
+      +list('New sizes added',r.newSizes)+list('New colours added — upload photos for these before saving',r.newColours)+list('Rows skipped',r.problems)
+      +'<button id="report-close">Close</button>';
+    $('#sheet-report').hidden=false;
+    if(r.changed||r.newColours.length||r.newSizes.length)changed();
+    status(r.problems.length?`Sheet applied with ${r.problems.length} problem${r.problems.length===1?'':'s'} — see the report above.`:'Sheet applied — review, then Save & publish.',r.problems.length?'bad':'ok');
+  }catch(e){status('Could not read that file: '+e.message,'bad')}
+};
+$('#sheet-report').addEventListener('click',e=>{if(e.target.id==='report-close')$('#sheet-report').hidden=true});
+
+// ---- Promos ----
+$('#promos').addEventListener('input',e=>{
+  const t=e.target,{r,k}=t.dataset; if(!k||!data.promos[r])return;
+  data.promos[r][k]=t.type==='checkbox'?t.checked:t.value; changed();
+});
+$('#promos').addEventListener('click',e=>{
+  const r=e.target.dataset.delR; if(r===undefined||!confirm('Delete this promo?'))return;
+  data.promos.splice(r,1); render(); changed();
+});
 $('#add-promo').onclick=()=>{data.promos.unshift({id:'r'+Date.now().toString(36),tag:'New',title:'',text:'',until:'',active:true});render();changed()};
+
 $('#save').onclick=async()=>{
   $('#save').disabled=true; status('Saving…');
   try{const {version}=await api('catalogue',{method:'PUT',body:JSON.stringify(data)}); data.version=version; dirty=false; status('Saved — the shop shows your changes now.','ok')}
@@ -175,7 +334,7 @@ $('#save').onclick=async()=>{
   $('#save').disabled=false;
 };
 
-// Orders
+// ---- Orders ----
 async function loadOrders(){
   try{orders=await api('orders'); renderOrders()}
   catch(e){$('#orders').innerHTML=`<tr><td colspan="7" class="out">Could not load orders: ${esc(e.message)}</td></tr>`}
@@ -198,11 +357,12 @@ function renderOrders(){
       <td class="acts">${acts.map(([s,l])=>`<button data-no="${esc(o.no)}" data-set="${s}"${s==='cancelled'?' class="danger"':''}>${l}</button>`).join('')}</td></tr>`}).join('')
     ||'<tr><td colspan="7" class="hint">No orders here.</td></tr>';
 }
-async function setStatus(no,s){
-  if(s==='cancelled'&&!confirm(`Cancel order ${no}? If it was paid, its items go back into stock (refund card payments in Stripe).`))return;
-  try{await api('orders/'+no,{method:'POST',body:JSON.stringify({status:s})}); await Promise.all([loadOrders(), dirty?null:load()])}
-  catch(e){status(e.message,'bad')}
-}
+$('#orders').addEventListener('click',async e=>{
+  const {no,set}=e.target.dataset; if(!set)return;
+  if(set==='cancelled'&&!confirm(`Cancel order ${no}? If it was paid, its items go back into stock (refund card payments in Stripe).`))return;
+  try{await api('orders/'+no,{method:'POST',body:JSON.stringify({status:set})}); await loadOrders(); if(!dirty)await load()}
+  catch(err){status(err.message,'bad')}
+});
 $('#ord-filter').onchange=renderOrders;
 $('#ord-refresh').onclick=loadOrders;
 

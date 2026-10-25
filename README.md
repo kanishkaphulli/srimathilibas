@@ -20,7 +20,16 @@ Open `/admin` and sign in with a name and password from the `ADMIN_USERS` secret
   - Card orders become **Paid** on their own.
   - For bank transfers, click **Mark paid** when the money arrives.
   - Marking an order paid takes its items off stock. Cancelling a paid order puts them back. Refund card payments in Stripe yourself.
-- **Products & Stock:** write sizes like `S:2, M:3, L:0`. Use **Upload** to add a photo (JPG, PNG, WebP or AVIF, up to 5 MB). Click **Save & publish** to apply your changes.
+- **Products & Stock:** click a product to open it.
+  - Each product has a list of sizes and one or more **colours**.
+  - Each colour has a swatch, up to 8 photos (the first one is the main photo; use ★ to change it) and a stock table with one row per colour and one column per size.
+  - Photos can be JPG, PNG, WebP or AVIF, up to 5 MB each.
+  - Click **Save & publish** to apply your changes.
+- **Stock sheet (Excel):**
+  - **Download stock sheet** gives an .xlsx with one row per product colour: `Product ID | Product | Colour | XS | S | M | …`.
+  - Edit it in Excel or Google Sheets, then **Upload stock sheet** (.xlsx or .csv).
+  - Blank cells are left unchanged. A new size column adds that size to the product, and a new colour name adds that colour, which then needs photos before it can be saved.
+  - Rows that can't be used are listed in a report. Nothing is published until you click **Save & publish**.
 - If stock changed while you were editing, for example because an order was paid, the save is refused so it can't undo that change. Reload the page and edit again.
 
 To set or change the admin users, type the full list each time. It replaces the old one.

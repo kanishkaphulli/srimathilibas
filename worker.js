@@ -8,7 +8,7 @@
 //  - /api/stripe-webhook       Stripe tells us a payment went through, even if the customer closed the tab
 // Secrets (set with `npx wrangler secret put NAME`): ADMIN_USERS, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 
-import { lineItems, sizePath } from './order.js';
+import { lineItems, stockPath, namePath } from './order.js';
 import { validateProducts, validatePromos } from './validate.js';
 
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
@@ -65,8 +65,8 @@ async function same(a, b) {
 
 // ---- Catalogue ----
 async function getProducts(env) {
-  const { results } = await env.DB.prepare('SELECT id,cat,name,price,img,sizes FROM products ORDER BY sort, rowid').all();
-  return results.map((p) => ({ ...p, sizes: JSON.parse(p.sizes) }));
+  const { results } = await env.DB.prepare('SELECT id,cat,name,price,sizes,colours FROM products ORDER BY sort, rowid').all();
+  return results.map((p) => ({ ...p, sizes: JSON.parse(p.sizes), colours: JSON.parse(p.colours) }));
 }
 async function getPromos(env) {
   const { results } = await env.DB.prepare('SELECT id,tag,title,text,until,active FROM promos ORDER BY sort, rowid').all();
@@ -114,7 +114,7 @@ async function placeOrder(req, env, payMethod, url) {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
       order.no, new Date().toISOString(), payMethod === 'card' ? 'pending_payment' : 'awaiting_payment', payMethod,
       clip(order.name, 80), clip(order.phone, 30), email, delivery, delivery === 'delivery' ? clip(order.address, 300) : '', clip(order.notes, 300),
-      JSON.stringify(goods.map(({ id, size, qty, name, amount }) => ({ id, size, qty, name, price: amount / 100 }))), subtotal, shipping, subtotal + shipping,
+      JSON.stringify(goods.map(({ id, colour, size, qty, name, amount }) => ({ id, colour, size, qty, name, price: amount / 100 }))), subtotal, shipping, subtotal + shipping,
     ).run();
   } catch {
     return json({ error: 'Could not save your order — please try again.' }, 409);
@@ -153,7 +153,7 @@ async function markPaid(env, no) {
   const pending = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='paid' AND stock_applied=0)";
   await env.DB.batch([
     env.DB.prepare("UPDATE orders SET status='paid' WHERE no=? AND status IN ('pending_payment','awaiting_payment')").bind(no),
-    ...stockChanges(env, JSON.parse(order.items), -1, pending, no),
+    ...stockChanges(env, JSON.parse(order.items), await getProducts(env), -1, pending, no),
     env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + pending).bind(no),
     env.DB.prepare("UPDATE orders SET stock_applied=1 WHERE no=? AND status='paid'").bind(no),
   ]);
@@ -166,16 +166,21 @@ async function cancelOrder(env, no) {
   const taken = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='cancelled' AND stock_applied=1)";
   await env.DB.batch([
     env.DB.prepare("UPDATE orders SET status='cancelled' WHERE no=?").bind(no),
-    ...stockChanges(env, JSON.parse(order.items), +1, taken, no),
+    ...stockChanges(env, JSON.parse(order.items), await getProducts(env), +1, taken, no),
     env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + taken).bind(no),
     env.DB.prepare("UPDATE orders SET stock_applied=0 WHERE no=? AND status='cancelled'").bind(no),
   ]);
 }
 // One UPDATE per item; `guard` (using ?1 = order no) makes them no-ops unless this order's stock change is due
-function stockChanges(env, items, sign, guard, no) {
-  return items.map((i) => env.DB.prepare(
-    `UPDATE products SET sizes = json_set(sizes, ?2, MAX(0, COALESCE(json_extract(sizes, ?2), 0) + ?3)) WHERE id = ?4 AND ${guard}`,
-  ).bind(no, sizePath(i.size), sign * i.qty, i.id));
+// Colours are found by position, so each UPDATE also checks the colour at that position still has the same name
+function stockChanges(env, items, products, sign, guard, no) {
+  return items.flatMap((i) => {
+    const at = products.find((p) => p.id === i.id)?.colours.findIndex((c) => c.name === i.colour) ?? -1;
+    if (at < 0) return []; // product or colour was deleted since; nothing to adjust
+    return [env.DB.prepare(
+      `UPDATE products SET colours = json_set(colours, ?2, MAX(0, COALESCE(json_extract(colours, ?2), 0) + ?3)) WHERE id = ?4 AND json_extract(colours, ?5) = ?6 AND ${guard}`,
+    ).bind(no, stockPath(at, i.size), sign * i.qty, i.id, namePath(at), i.colour)];
+  });
 }
 
 // ---- Stripe ----
@@ -237,8 +242,8 @@ async function adminApi(req, env, route) {
       env.DB.prepare("UPDATE meta SET value = ? WHERE key='version' AND value = ?").bind(nv, v),
       env.DB.prepare(`DELETE FROM products WHERE ${won}`).bind(nv),
       env.DB.prepare(`DELETE FROM promos WHERE ${won}`).bind(nv),
-      ...products.map((p, i) => env.DB.prepare(`INSERT INTO products (id,cat,name,price,img,sizes,sort) SELECT ?,?,?,?,?,?,? WHERE ${won}`)
-        .bind(p.id, p.cat.trim(), p.name.trim(), p.price, p.img, JSON.stringify(p.sizes), i, nv)),
+      ...products.map((p, i) => env.DB.prepare(`INSERT INTO products (id,cat,name,price,sizes,colours,sort) SELECT ?,?,?,?,?,?,? WHERE ${won}`)
+        .bind(p.id, p.cat.trim(), p.name.trim(), p.price, JSON.stringify(p.sizes), JSON.stringify(p.colours.map((c) => ({ ...c, name: c.name.trim() }))), i, nv)),
       ...promos.map((p, i) => env.DB.prepare(`INSERT INTO promos (id,tag,title,text,until,active,sort) SELECT ?,?,?,?,?,?,? WHERE ${won}`)
         .bind(p.id, p.tag.trim(), p.title.trim(), p.text.trim(), p.until, p.active ? 1 : 0, i, nv)),
     ]);

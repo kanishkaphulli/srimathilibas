@@ -16,3 +16,5 @@ schema.sql
 seed.sql
 scripts
 validate.js
+migrations
+backups
