@@ -9,360 +9,324 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-/* The pinned poster (brand name pinned while each occasion's look passes), in the colours of an Indian invitation: rani pink field, white ink, marigold on the actions.
-   One face (Chivo), five sizes: small, body, lead, head, display. */
+/* Store layout: white page, near-black text, deep maroon only on actions and prices. One face (Chivo). */
 :root{
-  --bg:#b5134a; --surface:#a3103f; --deep:#5c0f22; --ink:#ffffff; --muted:#ffd6e3;
-  --accent:#f6b318; --accent-ink:#2a0a12; --white:#ffffff; --plum:#2a0a12;
-  --step-small:clamp(0.8125rem,0.8rem + 0.05vw,0.875rem);
-  --step-body:clamp(0.9375rem,0.9rem + 0.15vw,1.0625rem);
-  --step-lead:clamp(1.0625rem,1rem + 0.35vw,1.3125rem);
-  --step-head:clamp(1.75rem,1.1rem + 2.4vw,3.25rem);
-  --step-display:clamp(2.75rem,1.6rem + 5vw,6rem);
-  --m:clamp(16px,2.2vw,32px);
+  --bg:#ffffff; --surface:#f6f3f1; --ink:#1d1a19; --muted:#6b6461; --line:#e8e3df;
+  --accent:#7a1f2b; --accent-hover:#5f1721; --accent-ink:#ffffff; --note:#8a5a14;
+  --maroon:#7a1f2b; --gold:#8a5a14; --gold-text:#8a5a14;
+  --container:1200px; --gutter:24px;
+  --fs-xs:12.5px; --fs-sm:13.5px; --fs-base:15px; --fs-md:17px;
+  --fs-h2:clamp(1.375rem,1.1rem + 1vw,1.875rem); --fs-h1:clamp(1.875rem,1.2rem + 2.6vw,3.25rem);
   --ease:cubic-bezier(.2,.7,.2,1);
 }
+@media (max-width:640px){:root{--gutter:16px}}
 *{box-sizing:border-box;margin:0}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font:400 var(--step-body)/1.5 "Chivo",system-ui,sans-serif;letter-spacing:-.01em}
+body{background:var(--bg);color:var(--ink);font:400 var(--fs-base)/1.55 "Chivo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 img{display:block;max-width:100%}
-h1,h2,h3{font-weight:900;text-transform:uppercase;letter-spacing:-.05em;line-height:.9}
-.wrap{padding:0 var(--m)}
+h1,h2,h3{font-weight:700;letter-spacing:-.015em;line-height:1.2}
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-section{position:relative}
-
-/* One button shape for the whole page: square, flat */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--accent-ink);font:700 var(--step-body)/1 "Chivo",sans-serif;text-decoration:none;padding:13px 22px;border:0;cursor:pointer;transition:transform .15s var(--ease),background .2s}
-.btn:hover{background:#ffc93f}
-.btn:active{transform:scale(.97)}
-.btn.quiet{background:var(--white);color:var(--bg)}
-.btn.quiet:hover{background:var(--muted)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* Always-there bag */
-.bagdock{position:fixed;top:var(--m);right:var(--m);z-index:20;display:flex;gap:8px}
-.bag-btn{font:700 var(--step-small)/1 "Chivo",sans-serif;background:var(--white);color:var(--bg);border:0;padding:10px 14px;cursor:pointer;transition:transform .15s var(--ease)}
-.bag-btn:active{transform:scale(.96)}
-.bag-btn b.bump{animation:bump .4s var(--ease)}
-@keyframes bump{50%{transform:scale(1.35)}}
-.bag-btn b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;background:var(--accent);color:var(--accent-ink);margin-left:8px}
-
-/* 1 · Hero: full-bleed photograph, the name and one line set on it */
-.hero{position:relative;height:100svh;min-height:560px;overflow:hidden;color:var(--white)}
-.hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 25%;animation:drift 24s var(--ease) infinite alternate}
-@keyframes drift{to{transform:scale(1.06)}}
-.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#2a0a12e6 0%,#2a0a1266 45%,transparent 75%)} /* taste-skill-ignore: neutral scrim under text on a photo */
-.hero .copy{position:absolute;z-index:1;left:var(--m);right:var(--m);bottom:clamp(32px,9vh,88px);max-width:620px}
-.hero h1{font-size:var(--step-display);line-height:.9}
-.hero .lead{font-size:var(--step-lead);line-height:1.4;max-width:38ch;margin-top:16px}
-.hero .facts{font-size:var(--step-small);color:var(--muted);margin-top:10px}
-.hero .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;margin-top:24px}
-.hero .actions a:not(.btn){font-weight:700;font-size:var(--step-body)}
-.hero .credit{position:absolute;z-index:1;right:var(--m);bottom:var(--m);font-size:var(--step-small);color:var(--muted)}
-@media (max-width:760px){.hero .credit{display:none}}
-
-/* 2 · Occasions: the brand name pinned, occasion looks pass beneath */
-/* The title pins as an opaque band at the top; the looks scroll up beneath it, so no text ever sits on text */
-.about{padding:0 var(--m) clamp(96px,14vh,200px)}
-.about .pin{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(var(--m) + 52px) 0 clamp(14px,2.5vh,28px);pointer-events:none}
-.about .pin h2{font-size:var(--step-display);line-height:.85;text-align:center;color:var(--accent)}
-/* Two staggered columns of looks; the right one starts lower so a look is always in view */
-.looks{position:relative;z-index:1;display:grid;grid-template-columns:repeat(12,1fr);padding-top:clamp(24px,5vh,64px)}
-.looks .col{display:flex;flex-direction:column;gap:clamp(48px,10vh,112px)}
-.looks .col.l{grid-column:3 / span 3}
-.looks .col.r{grid-column:8 / span 3;padding-top:22vh}
-.look img{width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--surface)}
-.look figcaption{margin-top:14px;max-width:34ch}
-.look b{display:block;font-size:var(--step-body);font-weight:700}
-.look span{display:block;color:var(--muted);font-size:var(--step-small);margin-top:2px}
-.look p{margin-top:8px}
-.look.meaning{background:var(--deep);padding:24px}
-.look.meaning p{line-height:1.5}
-@media (max-width:760px){
-  .about .pin h2{font-size:12vw}
-  .about .pin{padding-top:calc(var(--m) + 48px)}
-  .looks{display:flex;flex-direction:column;gap:48px}
-  .looks .col{display:contents}
-  .look{width:72%}
-  .looks .col.r .look{align-self:flex-end}
-  .look.meaning{width:100%;order:-1}
-}
-
-/* 3 · Your programme: the line-up at one type size */
-.programme{background:var(--deep);padding:clamp(80px,12vh,160px) var(--m)}
-.programme h2{font-size:var(--step-head);max-width:16ch}
-.programme .intro{line-height:1.5;max-width:52ch;margin:14px 0 32px;color:var(--muted)}
-.pg-form{display:grid;gap:18px;margin-bottom:40px}
-.pg-form label.name{display:grid;gap:6px;max-width:320px;font-weight:700;font-size:var(--step-small)}
-.pg-form input[type=text]{font:inherit;font-size:var(--step-body);background:var(--white);color:var(--plum);border:0;padding:11px 12px}
-.occ{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0}
-.occ legend{font-weight:700;font-size:var(--step-small);margin-bottom:8px}
-.occ label{cursor:pointer}
-.occ input{position:absolute;opacity:0;width:1px}
-.occ span{display:inline-block;background:var(--surface);padding:9px 14px;font-weight:700;font-size:var(--step-small);transition:background .2s,color .2s,transform .15s var(--ease)}
-.occ label:hover span{background:var(--bg)}
-.occ input:checked+span{background:var(--accent);color:var(--accent-ink)}
-.occ input:focus-visible+span{outline:3px solid var(--white);outline-offset:2px}
-.lineup{width:100%;border-collapse:collapse;font-size:var(--step-body);line-height:1.7;font-variant-numeric:tabular-nums}
-.lineup td,.lineup th{padding:0;text-align:left;font-weight:400;vertical-align:baseline}
-.lineup td:nth-child(1){width:33%}
-.lineup td:nth-child(2),.lineup td:nth-child(3){width:33%}
-.lineup .num{text-align:right;white-space:nowrap}
-.lineup tr.day th,.lineup tr.day td{color:var(--accent);padding-top:40px;padding-bottom:8px}
-.lineup tr.day th{font-size:var(--step-lead)}
-.lineup tr.day:first-child th,.lineup tr.day:first-child td{padding-top:0}
-.lineup tr.day th{font-weight:900;text-transform:uppercase;letter-spacing:-.03em}
-.lineup tr.soft td{color:var(--muted)}
-.lineup a{text-decoration:underline 2px transparent;text-underline-offset:5px;transition:text-decoration-color .25s}
-.lineup a:hover{text-decoration-color:currentColor}
-.when input{font:inherit;font-size:var(--step-small);background:var(--white);color:var(--plum);border:0;padding:6px 8px}
-@media (max-width:760px){
-  .lineup,.lineup tbody,.lineup tr,.lineup td,.lineup th{display:block;width:auto!important}
-  .lineup tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;margin-bottom:18px}
-  .lineup tr td:first-child{grid-column:1 / -1;font-size:17px}
-  .lineup tr td:nth-child(2),.lineup tr td:nth-child(3){display:inline;font-size:14px;color:var(--muted)}
-  .lineup tr:not(.day) td:nth-child(2){grid-column:1}
-  .lineup tr:not(.day) td:nth-child(3){grid-column:1}
-  .lineup tr:not(.day) td.num{grid-column:2;grid-row:2 / span 2;font-size:14px;align-self:start}
-  .lineup tr.day{padding-top:32px;display:block}
-  .lineup tr.day th{font-size:20px;display:block}
-  .lineup tr.day td{padding:6px 0 0!important;font-size:14px;text-align:left}
-  .lineup tr.soft td{font-size:15px}
-}
-
-/* 4 · Up close: full-bleed detail with a one-column card that moves a column each time */
-.frame{position:relative;height:84svh;min-height:520px;overflow:hidden}
-.frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ccard{position:absolute;top:50%;transform:translateY(-50%);left:calc(var(--m) + (100vw - 2 * var(--m)) / 4 * (var(--col) - 1));width:min(calc((100vw - 2 * var(--m)) / 4),320px);background:var(--plum);color:var(--white);padding:20px;display:flex;flex-direction:column;gap:6px}
-.ccard h2,.ccard h3{font-size:var(--step-lead);line-height:1.15;text-transform:none;letter-spacing:-.02em;font-weight:700}
-.ccard p{font-size:var(--step-small);color:var(--muted)}
-.ccard .fig{color:var(--white);font-size:var(--step-body)}
-.ccard .fig{font-weight:700}
-.ccard img{width:100%;aspect-ratio:4/3;object-fit:cover;margin:8px 0 12px}
-.ccard .btn{width:100%}
-@media (max-width:760px){
-  .ccard{left:0;right:0;width:auto;top:auto;bottom:0;transform:none;align-items:stretch;text-align:left;display:grid;grid-template-columns:1fr 84px;align-content:start;column-gap:14px;padding:16px}
-  .ccard img{grid-column:2;grid-row:1 / span 3;margin:0;aspect-ratio:1}
-  .ccard .btn{grid-column:1 / -1;margin-top:auto}
-}
-
-/* 5 · The collection: photographs with swing-tag strips */
-.collection{padding:clamp(88px,12vh,160px) var(--m)}
-.collection .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px;margin-bottom:28px}
-.collection h2{font-size:var(--step-head)}
-.filters{display:flex;flex-wrap:wrap;gap:8px}
-.filters button{font:700 var(--step-small)/1 "Chivo",sans-serif;background:var(--surface);color:var(--ink);border:0;padding:9px 13px;cursor:pointer;transition:background .2s,transform .15s var(--ease)}
-.filters button:hover{background:var(--deep)}
-.filters button:active{transform:scale(.97)}
-.filters button[aria-pressed="true"]{background:var(--white);color:var(--bg)}
-.filters .sg-link{background:var(--accent);color:var(--accent-ink)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 12px}
-@media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:760px){.grid{grid-template-columns:repeat(2,1fr);gap:20px 8px}}
-@media (max-width:420px){.grid{grid-template-columns:1fr}}
-.card{--tag:var(--accent);--tag-ink:var(--accent-ink);scroll-margin-top:88px;display:flex;flex-direction:column;transition:transform .3s var(--ease)}
-.card:nth-child(4n+2){--tag:var(--white);--tag-ink:var(--bg)}
-.card:nth-child(4n+3){--tag:var(--plum);--tag-ink:var(--white)}
-.card:nth-child(4n+4){--tag:var(--muted);--tag-ink:var(--plum)}
-.card.flash{transform:translateY(-8px)}
-.gal{position:relative;overflow:hidden;background:var(--surface)}
-.gal img{width:100%;aspect-ratio:4/5;object-fit:cover;transition:transform .8s var(--ease)}
-.card:hover .gal img{transform:scale(1.04)}
-.gnav{position:absolute;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:var(--white);color:var(--plum);font-size:1.4rem;line-height:1;cursor:pointer}
-.gnav.prev{left:0}.gnav.next{right:0}
-.gcount{position:absolute;left:0;bottom:0;background:var(--plum);color:var(--white);font-size:var(--step-small);padding:4px 10px}
-.gcount:empty{display:none}
-.strip{background:var(--tag);color:var(--tag-ink);padding:12px;display:grid;gap:8px;flex:1;font-size:var(--step-small);font-variant-numeric:tabular-nums}
-.strip .r1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.strip h3{font-size:var(--step-body);text-transform:none;font-weight:700;letter-spacing:-.01em;line-height:1.25}
-.strip .price{font-weight:700;font-size:var(--step-body);white-space:nowrap}
-.strip .cat{opacity:.85}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 fieldset{border:0;padding:0;margin:0}
-.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* Buttons: one shape, square corners */
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:var(--accent-ink);font:700 var(--fs-sm)/1 "Chivo",sans-serif;text-decoration:none;padding:12px 20px;border:1px solid var(--accent);cursor:pointer;transition:background .2s,color .2s,transform .12s var(--ease)}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:inherit;border-color:currentColor}
+.btn.ghost:hover{background:#ffffff1f}
+
+/* Promo bar + header */
+.promo-bar{background:var(--ink);color:#fff;font-size:var(--fs-xs);text-align:center;padding:8px var(--gutter)}
+.promo-bar b{font-weight:700}
+header.site{position:sticky;top:0;z-index:20;background:#ffffffee;backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line)}
+header.site .bar{display:flex;align-items:center;gap:32px;height:64px}
+.logo{font-weight:700;font-size:18px;letter-spacing:.01em;text-decoration:none;color:var(--accent);white-space:nowrap}
+header.site nav{display:flex;gap:24px;font-size:var(--fs-sm);margin-right:auto}
+header.site nav a{text-decoration:none;color:var(--muted);transition:color .2s}
+header.site nav a:hover{color:var(--ink)}
+.bag-btn{display:inline-flex;align-items:center;gap:8px;font:700 var(--fs-sm)/1 "Chivo",sans-serif;background:none;color:var(--ink);border:1px solid var(--line);padding:9px 12px;cursor:pointer;transition:border-color .2s}
+.bag-btn:hover{border-color:var(--ink)}
+.bag-btn b{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;background:var(--accent);color:#fff;font-size:11.5px}
+.bag-btn b.bump{animation:bump .4s var(--ease)}
+@keyframes bump{50%{transform:scale(1.3)}}
+@media (max-width:760px){header.site nav{display:none}header.site .bar{justify-content:space-between}}
+
+/* Hero */
+.hero{position:relative;height:clamp(420px,68svh,640px);overflow:hidden;color:#fff;background:var(--ink)}
+.hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 22%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#120a0bcc 0%,#120a0b66 45%,transparent 75%)}
+.hero .hero-copy{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:center;max-width:var(--container)}
+.hero h1{font-size:var(--fs-h1);max-width:14ch}
+.hero p{font-size:var(--fs-md);color:#f1e9e6;max-width:40ch;margin-top:14px}
+.hero .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+@media (max-width:640px){
+  .hero::after{background:linear-gradient(0deg,#120a0bdd 10%,#120a0b55 55%,transparent 80%)}
+  .hero .hero-copy{justify-content:flex-end;padding-bottom:28px}
+}
+
+/* Sections */
+section.block{padding:72px 0}
+@media (max-width:640px){section.block{padding:48px 0}}
+.sec-head{margin-bottom:28px}
+.sec-head h2{font-size:var(--fs-h2)}
+.sec-head p{color:var(--muted);margin-top:6px;max-width:60ch}
+.sec-head.row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+
+/* Filters */
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{font:400 var(--fs-sm)/1 "Chivo",sans-serif;background:none;color:var(--muted);border:1px solid var(--line);padding:8px 13px;cursor:pointer;transition:all .2s}
+.filters button:hover{color:var(--ink);border-color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Product grid */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:36px 20px}
+@media (max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:700px){.grid{grid-template-columns:repeat(2,1fr);gap:28px 12px}}
+.card{display:flex;flex-direction:column;scroll-margin-top:88px}
+.card.flash .gal{outline:2px solid var(--accent);outline-offset:3px}
+.gal{position:relative;overflow:hidden;background:var(--surface)}
+.gal img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;transition:transform .6s var(--ease)}
+.card:hover .gal img{transform:scale(1.03)}
+.gnav{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:#ffffffe6;color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer;opacity:0;transition:opacity .2s}
+.card:hover .gnav,.gnav:focus-visible{opacity:1}
+@media (hover:none){.gnav{opacity:1}}
+.gnav.prev{left:8px}.gnav.next{right:8px}
+.gcount{position:absolute;right:8px;bottom:8px;background:#ffffffe6;color:var(--ink);font-size:11.5px;padding:3px 8px}
+.gcount:empty{display:none}
+.info{padding-top:12px;display:grid;gap:8px;font-size:var(--fs-sm)}
+.info .cat{color:var(--muted);font-size:var(--fs-xs)}
+.info .r1{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:-4px}
+.info h3{font-size:var(--fs-base);font-weight:700;line-height:1.3}
+.info .price{font-weight:700;color:var(--accent);white-space:nowrap}
+.colours{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
 .colours label{cursor:pointer;display:inline-flex}
 .colours input{position:absolute;opacity:0;width:1px}
-.colours i{width:22px;height:22px;border-radius:50%;outline:2px solid transparent;outline-offset:2px;box-sizing:border-box;border:2px solid var(--tag)}
-.colours input:checked+i{outline-color:var(--tag-ink)}
-.colours input:focus-visible+i{outline:3px solid var(--tag-ink)}
-.colours .cname{font-size:var(--step-small)}
+.colours i{width:16px;height:16px;border-radius:50%;box-shadow:0 0 0 1px #00000026 inset}
+.colours input:checked+i{outline:1.5px solid var(--ink);outline-offset:2px}
+.colours input:focus-visible+i{outline:2px solid var(--accent);outline-offset:2px}
+.colours .cname{font-size:var(--fs-xs);color:var(--muted)}
 .sizes{display:flex;flex-wrap:wrap;gap:4px}
 .sizes label{cursor:pointer}
 .sizes input{position:absolute;opacity:0;width:1px}
-.sizes span{display:inline-block;min-width:36px;text-align:center;padding:6px 8px;font-size:var(--step-small);background:color-mix(in srgb,var(--tag-ink) 12%,transparent);font-weight:700}
-.sizes input:checked+span{background:var(--tag-ink);color:var(--tag)}
-.sizes input:focus-visible+span{outline:3px solid var(--tag-ink);outline-offset:1px}
-.sizes input:disabled+span{opacity:.35;text-decoration:line-through;cursor:not-allowed}
-.note{min-height:1.3em;font-weight:700}
+.sizes span{display:inline-block;min-width:34px;text-align:center;padding:6px 9px;border:1px solid var(--line);font-size:var(--fs-xs);transition:border-color .2s}
+.sizes label:hover span{border-color:var(--ink)}
+.sizes input:checked+span{background:var(--ink);border-color:var(--ink);color:#fff}
+.sizes input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
+.sizes input:disabled+span{color:#8f8784;text-decoration:line-through;cursor:not-allowed;border-color:var(--line)}
+.note{min-height:1.2em;font-size:var(--fs-xs);color:var(--note)}
+.note:empty{min-height:0;display:none}
 .buy{display:flex;gap:6px}
-.stepper{display:flex;align-items:center;background:color-mix(in srgb,var(--tag-ink) 12%,transparent);flex:0 0 auto}
-.stepper button{width:30px;height:38px;border:0;background:none;color:inherit;font-size:1.1rem;cursor:pointer}
-.stepper button:disabled{opacity:.35;cursor:not-allowed}
-.stepper output{min-width:20px;text-align:center;font-weight:700}
-.btn-solid{flex:1;background:var(--tag-ink);color:var(--tag);border:0;padding:10px;font:700 var(--step-small)/1 "Chivo",sans-serif;cursor:pointer;transition:transform .15s var(--ease),opacity .2s}
-.btn-solid:active{transform:scale(.97)}
-.btn-solid:disabled{opacity:.45;cursor:not-allowed}
-.empty{font-size:var(--step-body);padding:40px 0}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);flex:0 0 auto}
+.stepper button{width:28px;height:36px;border:0;background:none;color:var(--ink);font-size:1rem;cursor:pointer}
+.stepper button:disabled{color:#c9c2be;cursor:not-allowed}
+.stepper output{min-width:18px;text-align:center;font-size:var(--fs-sm)}
+.btn-solid{flex:1;background:var(--accent);color:#fff;border:0;padding:10px;font:700 var(--fs-sm)/1 "Chivo",sans-serif;cursor:pointer;transition:background .2s,transform .12s var(--ease)}
+.btn-solid:hover{background:var(--accent-hover)}
+.btn-solid:active{transform:scale(.98)}
+.btn-solid:disabled{background:#ece7e4;color:#5e5754;cursor:not-allowed}
+@media (max-width:700px){.stepper{display:none}}
+.empty{color:var(--muted);padding:32px 0}
 
-/* 6 · How it works: one verb at a time */
-.verbs .panel-v{position:relative;height:80svh;min-height:480px;overflow:hidden}
-.verbs .panel-v>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.72)}
-.verbs .hold{position:sticky;top:50%;transform:translateY(-50%);text-align:center;z-index:1}
-.verbs h3{font-size:clamp(56px,9vw,148px);line-height:.85;color:var(--accent)}
-.verbs p{position:absolute;left:var(--m);bottom:var(--m);max-width:34ch;font-size:var(--step-body);line-height:1.5;background:var(--plum);padding:14px 16px;z-index:1}
-@media (max-width:760px){.verbs h3{font-size:18vw}.verbs p{right:var(--m);font-size:15px}}
+/* Plan by occasion */
+.planner{background:var(--surface)}
+.planner-box{display:grid;grid-template-columns:320px 1fr;gap:0;background:#fff;border:1px solid var(--line)}
+@media (max-width:860px){.planner-box{grid-template-columns:1fr}}
+.pl-controls{padding:24px;border-right:1px solid var(--line);display:grid;gap:22px;align-content:start}
+@media (max-width:860px){.pl-controls{border-right:0;border-bottom:1px solid var(--line);padding:20px}}
+.pl-controls legend,.pl-label{font-weight:700;font-size:var(--fs-sm);margin-bottom:10px}
+.occ{display:flex;flex-wrap:wrap;gap:6px}
+.occ label{cursor:pointer}
+.occ input{position:absolute;opacity:0;width:1px}
+.occ span{display:inline-block;border:1px solid var(--line);padding:7px 12px;font-size:var(--fs-sm);transition:all .2s}
+.occ label:hover span{border-color:var(--ink)}
+.occ input:checked+span{background:var(--ink);border-color:var(--ink);color:#fff}
+.occ input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.pg-dates{display:grid;gap:10px}
+.pg-date{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:4px 10px;font-size:var(--fs-sm)}
+.pg-date input{font:inherit;font-size:var(--fs-sm);border:1px solid var(--line);padding:7px 8px;color:var(--ink);background:#fff;width:100%}
+.pg-date small{grid-column:2;color:var(--muted);font-size:var(--fs-xs)}
+.pg-date small.warn{color:var(--note)}
+.pl-results{padding:24px;display:grid;gap:28px;align-content:start;min-height:220px}
+@media (max-width:860px){.pl-results{padding:20px}}
+.pg-group h3{font-size:var(--fs-base)}
+.pg-group .when{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
+.pg-group .when.warn{color:var(--note)}
+.pg-list{list-style:none;padding:0;margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.pg-list a{display:grid;grid-template-columns:48px 1fr auto;gap:2px 12px;align-items:center;text-decoration:none;padding:8px;border:1px solid var(--line);transition:border-color .2s}
+.pg-list a:hover{border-color:var(--ink)}
+.pg-list img{grid-row:span 2;width:48px;height:60px;object-fit:cover}
+.pg-list .n{font-size:var(--fs-sm);font-weight:700;line-height:1.25}
+.pg-list .m{font-size:var(--fs-xs);color:var(--muted)}
+.pg-list .pr{grid-row:1 / span 2;grid-column:3;font-size:var(--fs-sm);font-weight:700;color:var(--accent)}
+.pg-empty{color:var(--muted);font-size:var(--fs-sm);align-self:center}
 
-/* 7 · Contact: the email as display type */
-.contact{background:var(--white);color:var(--plum);min-height:56svh;padding:var(--m);display:grid;grid-template-rows:auto 1fr auto auto}
-.contact h2{font-size:var(--step-lead);text-transform:none;letter-spacing:-.02em;line-height:1.3;max-width:24ch;font-weight:700}
-.contact .mail{align-self:end;font:400 clamp(24px,4.6vw,76px)/1.05 "Chivo",sans-serif;letter-spacing:-.04em;text-decoration:none;color:var(--bg);margin:8vh 0 6vh;overflow-wrap:anywhere;transition:color .2s}
-.contact .mail:hover{color:var(--plum)}
-.contact .corners{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px 32px;font-size:var(--step-body)}
-.contact .corners a{font-weight:700}
-@media (max-width:760px){.contact{min-height:60svh}.contact .mail{font-size:8.6vw;margin:6vh 0}.contact .corners{flex-direction:column}}
+/* How ordering works */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+@media (max-width:860px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.steps{grid-template-columns:1fr;gap:20px}}
+.steps h3{font-size:var(--fs-base);margin-bottom:6px}
+.steps p{color:var(--muted);font-size:var(--fs-sm)}
 
-/* 8 · Footer: the name first, places under it */
-footer{background:var(--plum);color:var(--white);padding:0 var(--m) var(--m);overflow:hidden}
-footer .name{font:900 clamp(36px,7.6vw,140px)/.85 "Chivo",sans-serif;text-transform:uppercase;letter-spacing:-.05em;white-space:nowrap;padding-top:clamp(48px,8vh,96px)}
-footer .row{display:grid;grid-template-columns:5fr 7fr;gap:var(--m);margin-top:48px}
-footer .places a{display:block;color:var(--accent);font-size:var(--step-body);font-weight:700;text-decoration:none;line-height:1.3}
-footer .places a:hover{color:var(--white)}
-footer .links{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-footer .links a,footer .links button{display:block;color:var(--muted);text-decoration:none;font:inherit;font-size:var(--step-small);background:none;border:0;padding:0;margin-bottom:6px;cursor:pointer;text-align:left}
-footer .links a:hover,footer .links button:hover{color:var(--white)}
-footer .legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:56px;font-size:var(--step-small);color:var(--muted)}
-@media (max-width:760px){footer .row{grid-template-columns:1fr}footer .links{grid-template-columns:repeat(2,1fr)}}
+/* Contact */
+.contact{border-top:1px solid var(--line)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+@media (max-width:760px){.contact-grid{grid-template-columns:1fr;gap:24px}}
+.contact h2{font-size:var(--fs-h2)}
+.contact p{color:var(--muted);margin-top:8px;max-width:44ch}
+.contact .btn{margin-top:20px}
+.contact-list{list-style:none;padding:0;display:grid;gap:0;border-top:1px solid var(--line)}
+.contact-list li{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:var(--fs-sm)}
+.contact-list span{color:var(--muted)}
+.contact-list a{text-decoration:none;font-weight:700}
+.contact-list a:hover{color:var(--accent)}
 
-/* Entrances: parts of each section rise in turn (content is visible without script) */
-.js [data-rise]{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0) * 75ms)}
+/* Footer */
+footer.site-foot{background:var(--surface);padding:40px 0 28px;font-size:var(--fs-sm)}
+.foot{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px}
+@media (max-width:760px){.foot{grid-template-columns:1fr 1fr}}
+.foot p{color:var(--muted);margin-top:6px;max-width:34ch}
+.foot nav{display:grid;gap:8px;align-content:start}
+.foot nav a,.foot nav button{color:var(--muted);text-decoration:none;font:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.foot nav a:hover,.foot nav button:hover{color:var(--ink)}
+.legal{grid-column:1 / -1;color:var(--muted);font-size:var(--fs-xs);padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* Entrances: subtle */
+.js [data-rise]{opacity:0;transform:translateY(12px);transition:opacity .5s var(--ease),transform .5s var(--ease);transition-delay:calc(var(--i,0) * 60ms)}
 .js [data-rise].in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  .hero>img{animation:none}
-  .js [data-rise]{opacity:1;transform:none;transition:none}
-  *{transition-duration:0s!important}
-}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js [data-rise]{opacity:1;transform:none;transition:none}*{transition-duration:0s!important;animation:none!important}}
 
-/* Bag, checkout and size guide: white sheets over the page */
-dialog{--surface:#ffffff;--ink:#2a0a12;--muted:#6b4a55;--line:#efd9e1;--bg:#fbf0f4;--maroon:#b5134a;--gold:#b5134a;--gold-text:#8a0f38;
-  border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(400px,100vw);background:var(--surface);color:var(--ink);font-size:15px;line-height:1.5;text-transform:none}
-dialog::backdrop{background:#2a0a12aa}
+/* Bag, checkout and size guide */
+dialog{--surface:#ffffff;--ink:#1d1a19;--muted:#6b6461;--line:#e8e3df;--bg:#f6f3f1;
+  border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(400px,100vw);background:#fff;color:var(--ink);font-size:14.5px;line-height:1.5}
+dialog::backdrop{background:#1d1a1980}
 dialog.center{margin:auto;height:auto;max-height:90dvh;width:min(420px,calc(100vw - 32px))}
-dialog h2,dialog h3{text-transform:none;font-weight:700;letter-spacing:-.01em;line-height:1.2}
 .panel{display:flex;flex-direction:column;height:100%}
-.panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)} /* taste-skill-ignore: checkout panel is a form UI; dividers and field outlines are expected */
-.panel-head h2{font-size:1.125rem}
-.x{background:none;border:0;font-size:1.4rem;line-height:1;color:var(--muted);cursor:pointer;padding:4px 6px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:16px}
+.x{background:none;border:0;font-size:1.35rem;line-height:1;color:var(--muted);cursor:pointer;padding:4px 6px}
 .x:hover{color:var(--ink)}
 .panel-body{flex:1;overflow:auto;padding:16px 18px}
-.panel-foot{padding:14px 18px 18px;border-top:1px solid var(--line);display:grid;gap:8px;font-size:14px} /* taste-skill-ignore: checkout panel is a form UI; dividers and field outlines are expected */
-.panel-foot .btn-solid,dialog .btn-solid{--tag:#ffffff;--tag-ink:var(--maroon);padding:12px;font-size:15px}
-.line{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 0;font-size:14px}
-.line+.line{border-top:1px solid var(--line)} /* taste-skill-ignore: checkout panel is a form UI; dividers and field outlines are expected */
+.panel-foot{padding:14px 18px 18px;border-top:1px solid var(--line);display:grid;gap:8px;font-size:14px}
+dialog .btn-solid{padding:12px;font-size:14px}
+.line{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 0;font-size:13.5px}
+.line+.line{border-top:1px solid var(--line)}
 .line img{width:52px;height:66px;object-fit:cover}
 .line strong{font-weight:700}
 .line small{color:var(--muted);display:block}
 .qty{display:flex;align-items:center;gap:6px;margin-top:4px}
-.qty button{width:26px;height:26px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
-.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.9rem;padding:0}
+.qty button{width:24px;height:24px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:0}
 .row{display:flex;justify-content:space-between}
 .row.total{font-weight:700;font-size:15px}
-dialog .empty{color:var(--muted);text-align:center;font-size:14px}
+dialog .empty{text-align:center;font-size:14px}
 .field{display:grid;gap:4px;margin-bottom:12px;font-size:13px}
 .field>span{font-weight:700}
-select,input,textarea{font:inherit;font-size:15px;color:var(--ink);background:#fff;border:1px solid #e3cdd6;padding:9px 11px;width:100%}
-select:focus,input:focus,textarea:focus{border-color:var(--maroon);outline:none}
+select,input,textarea{font:inherit;font-size:14.5px;color:var(--ink);background:#fff;border:1px solid #ddd5d1;padding:9px 11px;width:100%}
+select:focus,input:focus,textarea:focus{border-color:var(--ink);outline:none}
 dialog fieldset{display:grid;gap:8px;margin:0 0 14px}
 legend{font-weight:700;font-size:13px;margin-bottom:6px}
-.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #e3cdd6;padding:10px 12px;font-size:14px;cursor:pointer} /* taste-skill-ignore: checkout panel is a form UI; dividers and field outlines are expected */
-.opt:has(input:checked){border-color:var(--maroon);background:#fff6f9}
-.opt input{width:auto;margin-top:4px;accent-color:var(--maroon)}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid #ddd5d1;padding:10px 12px;font-size:14px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--ink)}
+.opt input{width:auto;margin-top:4px;accent-color:var(--accent)}
 .opt small{color:var(--muted);display:block;font-size:12.5px}
-.err{color:#b3261e;font-size:.9rem;min-height:1.2em}
-.done-mark{width:64px;height:64px;background:var(--maroon);color:#fff;display:grid;place-items:center;font-size:1.8rem;margin:8px auto 16px}
-.done h3{text-align:center;font-size:1.375rem;margin-top:8px}
+.err{color:#b3261e;font-size:13px;min-height:1.2em}
+.done h3{text-align:center;font-size:20px;margin-top:8px}
 .done p{color:var(--muted);text-align:center;margin:6px 0 16px;font-size:14px}
-.summary{background:var(--bg);padding:12px 14px;font-size:13px;white-space:pre-wrap;font-family:inherit}
+.summary{background:var(--bg);padding:12px 14px;font-size:12.5px;white-space:pre-wrap;font-family:inherit}
 .bank{background:var(--bg);padding:12px 14px;margin-bottom:12px;display:grid;gap:4px;font-size:14px}
 .bank span{color:var(--muted)}
-.btn-wa{display:block;text-align:center;background:#1f7a45;color:#fff;padding:12px;text-decoration:none;font-weight:700;font-size:15px}
-dialog .btn{background:#fff;color:var(--ink);border:1px solid #e3cdd6;padding:11px;font-size:14px} /* taste-skill-ignore: checkout panel is a form UI; dividers and field outlines are expected */
+.btn-wa{display:block;text-align:center;background:#1f7a45;color:#fff;padding:12px;text-decoration:none;font-weight:700;font-size:14px}
+dialog .btn{background:#fff;color:var(--ink);border:1px solid #ddd5d1;padding:11px;font-size:14px}
 .hint{color:var(--muted);font-size:13px;margin:4px 0 12px}
 .sg{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:12px}
-.sg tr:nth-child(odd) td{background:var(--bg)}
-.sg th,.sg td{padding:7px;text-align:center}
+.sg th,.sg td{padding:7px;text-align:center;border-bottom:1px solid var(--line)}
 .sg th{font-size:12.5px;color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="bagdock"><button class="bag-btn" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button></div>
+<div class="promo-bar" id="promo-bar" hidden></div>
+<header class="site">
+  <div class="container bar">
+    <a class="logo" href="#top">Srimathi Libas</a>
+    <nav aria-label="Main"><a href="#collections">Shop</a><a href="#programme">Plan by occasion</a><a href="#order">How to order</a><a href="#contact">Contact</a></nav>
+    <button class="bag-btn" id="open-bag" aria-label="Open shopping bag">Bag <b id="bag-count">0</b></button>
+  </div>
+</header>
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
-    <img src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=2400&q=80" alt="Bride in a jewelled maroon and teal lehenga in a stone archway" width="2400" height="1600">
-    <div class="copy">
-      <h1 id="hero-title">Srimathi Libas</h1>
-      <p class="lead">Indian attire for every occasion, handpicked in India and in stock in Auckland.</p>
-      <p class="facts">Lehengas, sarees, suits and co&#8209;ords · from <span id="from">NZ$109</span> · pickup or NZ-wide delivery</p>
-      <div class="actions"><a class="btn" href="#programme">Plan my outfits</a><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp us</a></div>
-    </div>
-    <span class="credit">Photo: Unsplash</span>
-  </section>
-
-  <section class="about" id="about" aria-labelledby="about-title">
-    <div class="pin"><h2 id="about-title">Srimathi Libas</h2></div>
-    <div class="looks" id="looks">
-      <div class="col l"><figure class="look meaning" data-rise><figcaption><b>Dressed for the occasion</b><p>Lehengas, sarees, suits and co-ords, handpicked in India in small batches and kept in stock here in Auckland. Every look below is chosen for one occasion.</p></figcaption></figure></div>
-      <div class="col r"></div>
+    <img src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=2000&q=75" alt="Bride in a jewelled maroon and teal lehenga in a stone archway" width="2000" height="1333">
+    <div class="container hero-copy">
+      <h1 id="hero-title">Indian attire for every occasion</h1>
+      <p>Lehengas, sarees, suits and co&#8209;ords, handpicked in India and in stock in Auckland.</p>
+      <div class="actions"><a class="btn" href="#collections">Shop the collection</a><a class="btn ghost" href="#programme">Plan by occasion</a></div>
     </div>
   </section>
 
-  <section class="programme" id="programme" aria-labelledby="pg-title">
-    <h2 id="pg-title" data-rise>Your programme</h2>
-    <p class="intro" data-rise style="--i:1">Tick your occasions and add their dates. We'll show what's in stock for each, and the last day to order for courier.</p>
-    <form class="pg-form" onsubmit="return false" data-rise style="--i:2">
-      <label class="name">Your name (optional)<input type="text" id="pg-name" maxlength="30" autocomplete="given-name" placeholder="Priya"></label>
-      <fieldset class="occ" id="occ"><legend>Your occasions</legend></fieldset>
-    </form>
-    <table class="lineup" aria-labelledby="pg-title"><tbody id="pg-rows"><tr class="soft"><td colspan="4">Loading the collection…</td></tr></tbody></table>
-    <noscript><p class="intro">Message us on WhatsApp with your occasions and dates, and we'll suggest what to wear.</p></noscript>
+  <section class="block" id="collections" aria-labelledby="col-title">
+    <div class="container">
+      <div class="sec-head row">
+        <div><h2 id="col-title">The collection</h2><p>Small batches, often one or two of each size. Free pickup in Auckland or courier NZ-wide.</p></div>
+        <div class="filters" role="group" aria-label="Filter by category"></div>
+      </div>
+      <div class="grid" id="products"></div>
+    </div>
   </section>
 
-  <section id="showcase" aria-labelledby="show-title"></section>
-
-  <section class="collection" id="collections" aria-labelledby="col-title">
-    <div class="top"><h2 id="col-title" data-rise>The collection</h2><div class="filters" role="group" aria-label="Filter by category" data-rise style="--i:1"></div></div>
-    <div class="grid" id="products"></div>
+  <section class="block planner" id="programme" aria-labelledby="pg-title">
+    <div class="container">
+      <div class="sec-head"><h2 id="pg-title">Plan by occasion</h2><p>Choose your occasions and add the dates. We'll show what's in stock for each and the last day to order for courier delivery.</p></div>
+      <div class="planner-box">
+        <div class="pl-controls">
+          <fieldset class="occ" id="occ"><legend>Occasions</legend></fieldset>
+          <div><p class="pl-label">Dates</p><div class="pg-dates" id="pg-dates"></div></div>
+        </div>
+        <div class="pl-results" id="pg-results" aria-live="polite"><p class="pg-empty">Loading…</p></div>
+      </div>
+      <noscript><p class="pg-empty">Message us on WhatsApp with your occasions and dates, and we'll suggest what to wear.</p></noscript>
+    </div>
   </section>
 
-  <section class="verbs" id="order" aria-labelledby="order-title">
-    <h2 id="order-title" class="sr">How ordering works</h2>
-    <div class="panel-v"><img src="https://images.unsplash.com/photo-1601432093209-8af1fd74b054?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Choose</h3></div><p>Pick the colour, size and how many. Stock is real, often one or two of each.</p></div>
-    <div class="panel-v"><img src="https://images.unsplash.com/photo-1759840278381-bf7d5e332050?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Pay</h3></div><p>Card, Apple Pay or Google Pay, or a bank transfer with your order number.</p></div>
-    <div class="panel-v"><img src="https://images.unsplash.com/photo-1759906760638-eeffcb471e53?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Wear</h3></div><p>Free pickup in Auckland, or tracked courier across New Zealand in 2 to 5 working days.</p></div>
+  <section class="block" id="order" aria-labelledby="order-title">
+    <div class="container">
+      <div class="sec-head"><h2 id="order-title">How ordering works</h2></div>
+      <div class="steps">
+        <div><h3>Choose</h3><p>Pick the colour, size and quantity, and add it to your bag. Stock shown is what we have.</p></div>
+        <div><h3>Check out</h3><p>Enter your details and choose free pickup in Auckland or courier delivery for $12.</p></div>
+        <div><h3>Pay</h3><p>Pay by card, Apple Pay or Google Pay, or by bank transfer using your order number.</p></div>
+        <div><h3>Receive</h3><p>Collect in Auckland, or receive it by tracked courier in 2 to 5 working days.</p></div>
+      </div>
+    </div>
   </section>
 
-  <section class="contact" id="contact" aria-labelledby="contact-title">
-    <h2 id="contact-title" data-rise>Tell us the occasion and your size. We'll help you choose.</h2>
-    <span></span>
-    <a class="mail" href="mailto:Srimathilibasnz@gmail.com" data-rise>srimathilibasnz@gmail.com</a>
-    <div class="corners"><span><a href="tel:+64210747404">+64 210 747 404</a> · Auckland, New Zealand</span><span><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Facebook</a></span></div>
+  <section class="block contact" id="contact" aria-labelledby="contact-title">
+    <div class="container contact-grid">
+      <div>
+        <h2 id="contact-title">Need help choosing?</h2>
+        <p>Tell us the occasion and your size, and we'll suggest pieces that suit you.</p>
+        <a class="btn" href="https://wa.me/64210747404" target="_blank" rel="noopener">Message us on WhatsApp</a>
+      </div>
+      <ul class="contact-list">
+        <li><span>WhatsApp</span><a href="https://wa.me/64210747404" target="_blank" rel="noopener">+64 210 747 404</a></li>
+        <li><span>Email</span><a href="mailto:Srimathilibasnz@gmail.com">Srimathilibasnz@gmail.com</a></li>
+        <li><span>Facebook</span><a href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Srimathi Libas</a></li>
+        <li><span>Location</span>Auckland, New Zealand</li>
+      </ul>
+    </div>
   </section>
 </main>
 
-<footer>
-  <div class="name" aria-hidden="true">Srimathi Libas</div>
-  <div class="row">
-    <div class="places"><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp +64 210 747 404</a><a href="mailto:Srimathilibasnz@gmail.com">Srimathilibasnz@gmail.com</a><a href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Facebook</a></div>
-    <div class="links">
-      <div><a href="#programme">Your programme</a><a href="#collections">The collection</a><a href="#about">Occasions</a></div>
-      <div><a href="#order">How ordering works</a><button type="button" id="foot-guide">Size guide</button><a href="#contact">Contact</a></div>
-      <div><span style="color:var(--muted)">Auckland, New Zealand</span><span style="color:var(--muted);display:block">Pickup free · courier $12</span></div>
-    </div>
+<footer class="site-foot">
+  <div class="container foot">
+    <div><a class="logo" href="#top">Srimathi Libas</a><p>Indian traditional attire for women, in stock in Auckland.</p></div>
+    <nav aria-label="Shop"><a href="#collections">The collection</a><a href="#programme">Plan by occasion</a><button type="button" id="foot-guide">Size guide</button></nav>
+    <nav aria-label="Help"><a href="#order">How ordering works</a><a href="#contact">Contact</a><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp</a></nav>
+    <p class="legal"><span>© <span id="y">2026</span> Srimathi Libas</span><span>Photographs: Unsplash</span></p>
   </div>
-  <div class="legal"><span>© <span id="y">2026</span> Srimathi Libas. Photographs: Unsplash.</span><a href="#top">Back to top</a></div>
 </footer>
 <dialog id="size-guide" class="center" aria-labelledby="sg-title">
   <div class="panel">
@@ -479,97 +443,79 @@ let cart=[];
 try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>stockOf(i.id,i.colour,i.size)>0).map(i=>({...i,qty:Math.min(i.qty,stockOf(i.id,i.colour,i.size))}))}catch{}
 const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag(); PRODUCTS.forEach(syncCard)};
 
-// ---- The occasions a Srimathi dresses for. Sample mapping of occasion -> categories, for the client to confirm ----
+// ---- Occasions. Sample mapping of occasion -> categories, for the client to confirm ----
 const OCCASIONS=[
-  ['Mehndi',['Co-ord Sets','Ethnic Suits'],'Light co-ords and suits to sit in while the henna dries.'],
-  ['Haldi',['Co-ord Sets','Ethnic Suits'],'Easy pieces in sunny colours for the turmeric morning.'],
-  ['Sangeet',['Lehengas','Co-ord Sets'],'Lehengas and co-ords that twirl through a night of dancing.'],
-  ['Wedding',['Lehengas','Sarees'],'Bridal lehengas and silk sarees for the day itself.'],
-  ['Reception',['Sarees','Lehengas'],'Zari sarees that catch the light at the evening party.'],
-  ['Diwali',['Sarees','Ethnic Suits','Lehengas'],'Silk and colour for lamps, sweets and family visits.'],
-  ['Eid',['Ethnic Suits','Co-ord Sets'],'Graceful suits for prayers and lunch with the family.'],
-  ['Pooja',['Sarees','Ethnic Suits'],'Simple, beautiful pieces for prayers at home or at the temple.'],
+  ['Mehndi',['Co-ord Sets','Ethnic Suits']],
+  ['Haldi',['Co-ord Sets','Ethnic Suits']],
+  ['Sangeet',['Lehengas','Co-ord Sets']],
+  ['Wedding',['Lehengas','Sarees']],
+  ['Reception',['Sarees','Lehengas']],
+  ['Diwali',['Sarees','Ethnic Suits','Lehengas']],
+  ['Eid',['Ethnic Suits','Co-ord Sets']],
+  ['Pooja',['Sarees','Ethnic Suits']],
 ];
 const firstColour=p=>p.colours.find(c=>colourTotal(p,c)>0)||p.colours[0];
 const inStock=PRODUCTS.filter(p=>totalStock(p)>0);
-const sizesIn=p=>p.sizes.filter(s=>p.colours.some(c=>c.stock[s]>0)).join(' ');
-// Larger landscape crop for full-bleed use (Unsplash photos only; uploaded photos are used as they are)
-const big=u=>/images\.unsplash\.com/.test(u)?u.replace(/\?.*$/,'?w=2000&h=1250&fit=crop&crop=entropy&q=75'):u;
+const sizesIn=p=>p.sizes.filter(s=>p.colours.some(c=>c.stock[s]>0)).join(', ');
 const fmtDay=d=>d.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short'});
-if(PRODUCTS.length)$('#from').textContent=nzd(Math.min(...PRODUCTS.map(p=>p.price))).replace('.00','');
 
-// Occasions: one look per occasion passes under the pinned brand name
-const usedLook=new Set();
-const looks=OCCASIONS.map(([o,cats,line])=>{const p=inStock.find(p=>cats.includes(p.cat)&&!usedLook.has(p.id)); if(p)usedLook.add(p.id); return p&&{o,p,line}}).filter(Boolean).slice(0,5);
-looks.forEach((l,i)=>$(`#looks .col.${i%2?'l':'r'}`).insertAdjacentHTML('beforeend',`
-  <figure class="look" data-rise>
-    <img src="${esc(firstColour(l.p).photos[0])}" alt="${esc(l.p.name)}" loading="lazy" width="600" height="750">
-    <figcaption><b>${esc(l.o)}</b><span>${esc(l.p.name)}, ${nzd(l.p.price)}</span><p>${esc(l.line)}</p></figcaption>
-  </figure>`));
+// Promo bar: current offers from admin
+$('#promo-bar').hidden=!live.length;
+$('#promo-bar').innerHTML=live.slice(0,2).map(p=>`<b>${esc(p.title)}</b>${p.until?` · until ${esc(fmtDay(new Date(p.until+'T12:00')))}`:''}`).join('&ensp;|&ensp;');
 
-// Your programme (the live thing): name + occasions + dates -> in-stock pieces and the order-by date
+// Plan by occasion: tick occasions, add dates -> in-stock pieces per occasion and the order-by date
 const PG_KEY='sl-programme';
-const prog={name:'',events:{Sangeet:'',Wedding:''}};
-try{const s=JSON.parse(localStorage.getItem(PG_KEY)); if(s&&typeof s.events==='object'){prog.name=String(s.name||'');prog.events=s.events}}catch{}
+const prog={events:{Wedding:''}};
+try{const s=JSON.parse(localStorage.getItem(PG_KEY)); if(s&&s.events&&typeof s.events==='object')prog.events=s.events}catch{}
 // Courier takes up to 5 working days, so order 5 weekdays before the event
 function orderBy(date){const d=new Date(date+'T12:00'); for(let n=5;n>0;){d.setDate(d.getDate()-1); const w=d.getDay(); if(w&&w<6)n--} return d}
 console.assert(fmtDay(orderBy('2026-12-14'))===fmtDay(new Date('2026-12-07T12:00')),'orderBy skips weekends');
+function whenText(date){
+  if(!date)return ['Add a date to see the order-by day',false];
+  const now=new Date(today+'T12:00'), d=new Date(date+'T12:00'), ob=orderBy(date);
+  if(d<now)return ['This date has passed',true];
+  if(ob<now)return ['Too close for courier: pick up in Auckland',true];
+  return [`Order by ${fmtDay(ob)} for courier`,false];
+}
+const selected=()=>OCCASIONS.map(o=>o[0]).filter(o=>o in prog.events);
 $('#occ').insertAdjacentHTML('beforeend',OCCASIONS.map(([o])=>`<label><input type="checkbox" value="${o}"${o in prog.events?' checked':''}><span>${o}</span></label>`).join(''));
-$('#pg-name').value=prog.name;
-function renderProgramme(){
-  const name=prog.name.trim();
-  $('#pg-title').textContent=name?`${name}'s programme`:'Your programme';
-  const now=new Date(today+'T12:00'), rows=[];
-  if(live.length){
-    rows.push(`<tr class="day"><th colspan="3" scope="colgroup">On now</th><td class="num"></td></tr>`);
-    live.forEach(p=>rows.push(`<tr class="soft"><td>${esc(p.title)}</td><td colspan="2">${esc(p.text)}</td><td class="num">${p.until?'until '+fmtDay(new Date(p.until+'T12:00')):''}</td></tr>`));
-  }
-  const evs=Object.entries(prog.events).filter(([o])=>OCCASIONS.some(x=>x[0]===o)).sort(([,a],[,b])=>(a||'9999').localeCompare(b||'9999'));
-  for(const [o,date] of evs){
-    const occ=OCCASIONS.find(x=>x[0]===o);
-    let when='Add the date';
-    if(date){const d=new Date(date+'T12:00'), ob=orderBy(date); when=d<now?'This date has passed':ob<now?'Too close for courier: pick up in Auckland':`Order by ${fmtDay(ob)} for courier`}
-    rows.push(`<tr class="day"><th scope="colgroup">${o}</th><td></td><td><label class="when"><span class="sr">Date of ${o}</span><input type="date" data-ev="${o}" value="${esc(date)}" min="${today}"></label></td><td class="num">${when}</td></tr>`);
-    const ps=inStock.filter(p=>occ[1].includes(p.cat));
-    rows.push(...(ps.length?ps.map(p=>`<tr><td><a href="#p-${esc(p.id)}" data-go="${esc(p.id)}">${esc(p.name)}</a></td><td>${esc(p.cat)}</td><td>${sizesIn(p)}</td><td class="num">${nzd(p.price)}</td></tr>`)
-      :[`<tr class="soft"><td colspan="4">Nothing in stock for ${o} right now. Message us and we'll find something.</td></tr>`]));
-  }
-  if(!evs.length)rows.push(`<tr class="soft"><td colspan="4">Tick an occasion above to see what to wear.</td></tr>`);
-  $('#pg-rows').innerHTML=rows.join('');
+function renderDates(){
+  const sel=selected();
+  $('#pg-dates').innerHTML=sel.length?sel.map(o=>{const [t,w]=whenText(prog.events[o]);return `<label class="pg-date"><span>${o}</span><input type="date" data-ev="${o}" value="${esc(prog.events[o])}" min="${today}"><small class="${w?'warn':''}" data-when="${o}">${t}</small></label>`}).join('')
+    :'<p class="pg-empty">Choose an occasion first.</p>';
+}
+function renderResults(){
+  const sel=selected();
+  $('#pg-results').innerHTML=sel.length?sel.map(o=>{
+    const cats=OCCASIONS.find(x=>x[0]===o)[1], ps=inStock.filter(p=>cats.includes(p.cat)), date=prog.events[o], [t,w]=whenText(date);
+    return `<div class="pg-group"><h3>${o}${date?` · ${esc(fmtDay(new Date(date+'T12:00')))}`:''}</h3><p class="when${w?' warn':''}">${t}</p>
+      ${ps.length?`<ul class="pg-list">${ps.map(p=>`<li><a href="#p-${esc(p.id)}" data-go="${esc(p.id)}"><img src="${esc(firstColour(p).photos[0])}" alt="" loading="lazy" width="48" height="60"><span class="n">${esc(p.name)}</span><span class="m">${esc(p.cat)} · ${esc(sizesIn(p))}</span><span class="pr">${nzd(p.price)}</span></a></li>`).join('')}</ul>`
+        :`<p class="pg-empty">Nothing in stock for ${o} right now. Message us and we'll find something.</p>`}</div>`}).join('')
+    :'<p class="pg-empty">Choose one or more occasions to see what we have in stock for each.</p>';
   try{localStorage.setItem(PG_KEY,JSON.stringify(prog))}catch{}
 }
-$('#pg-name').oninput=e=>{prog.name=e.target.value.slice(0,30);renderProgramme()};
-$('#occ').onchange=e=>{const o=e.target.value; if(e.target.checked)prog.events[o]??='';else delete prog.events[o]; renderProgramme()};
-$('#pg-rows').addEventListener('change',e=>{const o=e.target.dataset.ev; if(o){prog.events[o]=e.target.value; renderProgramme()}});
-// Jump from a programme row or a close-up to that piece in the collection
+$('#occ').onchange=e=>{const o=e.target.value; if(e.target.checked)prog.events[o]??='';else delete prog.events[o]; renderDates(); renderResults()};
+$('#pg-dates').addEventListener('change',e=>{
+  const o=e.target.dataset.ev; if(!o)return;
+  prog.events[o]=e.target.value;
+  const [t,w]=whenText(e.target.value), s=$(`[data-when="${o}"]`); s.textContent=t; s.className=w?'warn':'';
+  renderResults();
+});
+renderDates(); renderResults();
+
+// Jump from the planner to that piece in the collection
 function goTo(id){
   const all=document.querySelector('.filters button');
   if(all&&all.getAttribute('aria-pressed')!=='true')all.click();
   const el=document.getElementById('p-'+id); if(!el)return;
   el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
-  el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1400);
+  el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1600);
 }
 document.addEventListener('click',e=>{const a=e.target.closest('[data-go]'); if(a){e.preventDefault(); goTo(a.dataset.go)}});
-renderProgramme();
 
-// Up close: the two dearest pieces from different categories, detail full-bleed, the whole piece on the card
-const feat=[...inStock].sort((a,b)=>b.price-a.price).filter((p,i,a)=>a.findIndex(x=>x.cat===p.cat)===i).slice(0,2);
-$('#showcase').hidden=!feat.length;
-$('#showcase').innerHTML=feat.map((p,i)=>{const ph=firstColour(p).photos[0], H=i?'h3':'h2'; return `
-  <div class="frame" style="--col:${i+2}">
-    <img src="${esc(big(ph))}" alt="Close-up of the ${esc(p.name)}" loading="lazy" width="2000" height="1250">
-    <div class="ccard" data-rise>
-      <${H}${i?'':' id="show-title"'}>${esc(p.name)}</${H}>
-      <p>${esc(p.cat)}, sizes ${esc(sizesIn(p)||p.sizes.join(' '))}</p>
-      <p class="fig">${nzd(p.price)}</p>
-      <img src="${esc(ph)}" alt="The whole ${esc(p.name)}" loading="lazy" width="600" height="400">
-      <a class="btn" href="#p-${esc(p.id)}" data-go="${esc(p.id)}">Choose your size</a>
-    </div>
-  </div>`}).join('');
-
-// The collection: photographs with swing-tag strips
+// The collection
 const cats=['All',...new Set(PRODUCTS.map(p=>p.cat))];
-$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('')+'<button class="sg-link" data-guide>Size guide</button>';
+$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('')+'<button data-guide>Size guide</button>';
 $('.filters').onclick=e=>{
   if(e.target.dataset.guide!==undefined)return $('#size-guide').showModal();
   if(e.target.tagName!=='BUTTON')return;
@@ -584,19 +530,18 @@ $('#products').innerHTML=PRODUCTS.map((p,i)=>{
   return `
   <article class="card" id="p-${esc(p.id)}" data-cat="${esc(p.cat)}" data-id="${esc(p.id)}" data-rise style="--i:${i%4}">
     <div class="gal" data-ph="0">
-      <img src="${esc(first.photos[0])}" alt="${esc(p.name)} in ${esc(first.name)}" loading="lazy" width="600" height="750">
+      <img src="${esc(first.photos[0])}" alt="${esc(p.name)} in ${esc(first.name)}" loading="lazy" width="600" height="800">
       <button type="button" class="gnav prev" data-nav="-1" aria-label="Previous photo">‹</button>
       <button type="button" class="gnav next" data-nav="1" aria-label="Next photo">›</button>
       <span class="gcount"></span>
     </div>
-    <div class="strip">
+    <div class="info">
+      <p class="cat">${esc(p.cat)}</p>
       <div class="r1"><h3>${esc(p.name)}</h3><span class="price">${nzd(p.price)}</span></div>
-      <div class="r1"><span class="cat">${esc(p.cat)}</span>
-        <fieldset class="colours"${p.colours.length>1?'':' hidden'}><legend class="sr">Colour for ${esc(p.name)}</legend>
-          ${p.colours.map(c=>`<label title="${esc(c.name)}"><input type="radio" name="col-${esc(p.id)}" value="${esc(c.name)}"${c===first?' checked':''}><i style="background:${esc(c.hex)}"></i><span class="sr">${esc(c.name)}</span></label>`).join('')}
-          <span class="cname"></span>
-        </fieldset>
-      </div>
+      <fieldset class="colours"${p.colours.length>1?'':' hidden'}><legend class="sr">Colour for ${esc(p.name)}</legend>
+        ${p.colours.map(c=>`<label title="${esc(c.name)}"><input type="radio" name="col-${esc(p.id)}" value="${esc(c.name)}"${c===first?' checked':''}><i style="background:${esc(c.hex)}"></i><span class="sr">${esc(c.name)}</span></label>`).join('')}
+        <span class="cname"></span>
+      </fieldset>
       <fieldset class="sizes"><legend class="sr">Size for ${esc(p.name)}</legend>
         ${p.sizes.map(s=>`<label><input type="radio" name="sz-${esc(p.id)}" value="${esc(s)}"><span>${esc(s)}</span></label>`).join('')}
       </fieldset>
