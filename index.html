@@ -7,317 +7,369 @@
 <meta name="description" content="Srimathi Libas – Indian traditional attire for women in Auckland, New Zealand. Ethnic suits, lehengas, sarees and co-ord sets.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-/* Luxe editorial: ivory paper, deep maroon, antique gold; Cormorant Garamond display + Jost text */
+/* The pinned poster (brand name pinned while each occasion's look passes), in the colours of an Indian invitation: rani pink field, white ink, marigold on the actions.
+   One face (Chivo), five sizes: small, body, lead, head, display. */
 :root{
-  --bg:#f7f1e8; --surface:#fffdf9; --ink:#2a1a17; --muted:#6b5850;
-  --maroon:#6b1626; --maroon-deep:#4a0f1a; --gold:#b08a3e; --gold-text:#7f5f22; --line:#e6dacb;
-  --on-dark:#fbefe0; --gold-light:#e6c587;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#16100f; --surface:#211715; --ink:#f3e9df; --muted:#c2aea6;
-    --maroon:#e8a0ad; --maroon-deep:#3a0f17; --gold:#d9b26a; --gold-text:#d9b26a; --line:#3a2a28;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#16100f; --surface:#211715; --ink:#f3e9df; --muted:#c2aea6;
-  --maroon:#e8a0ad; --maroon-deep:#3a0f17; --gold:#d9b26a; --gold-text:#d9b26a; --line:#3a2a28;
+  --bg:#b5134a; --surface:#a3103f; --deep:#5c0f22; --ink:#ffffff; --muted:#ffd6e3;
+  --accent:#f6b318; --accent-ink:#2a0a12; --white:#ffffff; --plum:#2a0a12;
+  --step-small:clamp(0.8125rem,0.79rem + 0.1vw,0.875rem);
+  --step-body:clamp(1.0625rem,1rem + 0.25vw,1.1875rem);
+  --step-lead:clamp(1.25rem,1.1rem + 0.7vw,1.75rem);
+  --step-head:clamp(2.5rem,1.2rem + 5vw,5.5rem);
+  --step-display:clamp(4rem,12vw,11rem);
+  --m:clamp(16px,2.2vw,32px);
+  --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font:400 16px/1.7 "Jost",system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font:400 var(--step-body)/1.5 "Chivo",system-ui,sans-serif;letter-spacing:-.01em}
 a{color:inherit}
-h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;line-height:1.1}
-.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
-@media (max-width:640px){.wrap{padding:0 16px}}
-.eyebrow{font-size:.72rem;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-text)}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+img{display:block;max-width:100%}
+h1,h2,h3{font-weight:900;text-transform:uppercase;letter-spacing:-.05em;line-height:.9}
+.wrap{padding:0 var(--m)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section{position:relative}
 
-/* Announcement + header */
-.announce{background:var(--maroon-deep);color:var(--on-dark);text-align:center;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px}
-header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:80px;gap:16px}
-header nav{display:flex;align-items:center;gap:26px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
-header nav:last-child{justify-content:flex-end}
-header nav a{text-decoration:none;color:var(--ink)}
-header nav a:hover{color:var(--maroon)}
-.logo{text-align:center;text-decoration:none;line-height:1}
-.logo b{display:block;font:600 1.9rem/1 "Cormorant Garamond",serif;letter-spacing:.05em;color:var(--maroon)}
-.logo small{font-size:.7rem;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-text)}
-.bag-btn{font:inherit;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;background:none;border:0;color:var(--ink);cursor:pointer;padding:8px 0}
-.bag-btn b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--maroon);color:var(--surface);font-size:.75rem;letter-spacing:0;margin-left:6px}
-@media (max-width:860px){
-  header .wrap{grid-template-columns:1fr auto;height:68px}
-  header nav:first-child,header nav:last-child a{display:none}
-  .logo{text-align:left}.logo b{font-size:1.6rem}
+/* One button shape for the whole page: square, flat */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--accent-ink);font:700 var(--step-body)/1 "Chivo",sans-serif;text-decoration:none;padding:16px 26px;border:0;cursor:pointer;transition:transform .15s var(--ease),background .2s}
+.btn:hover{background:#ffc93f}
+.btn:active{transform:scale(.97)}
+.btn.quiet{background:var(--white);color:var(--bg)}
+.btn.quiet:hover{background:var(--muted)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Always-there bag */
+.bagdock{position:fixed;top:var(--m);right:var(--m);z-index:20;display:flex;gap:8px}
+.bag-btn{font:700 var(--step-body)/1 "Chivo",sans-serif;background:var(--white);color:var(--bg);border:0;padding:14px 18px;cursor:pointer;transition:transform .15s var(--ease)}
+.bag-btn:active{transform:scale(.96)}
+.bag-btn b{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 8px;background:var(--accent);color:var(--accent-ink);margin-left:8px}
+
+/* 1 · Hero: card over a dim room; the card shrinks to a stub as you scroll */
+.hero-wrap{height:170svh}
+.hero{position:sticky;top:0;height:100svh;overflow:hidden}
+.hero>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 25%;filter:brightness(.62);animation:drift 24s var(--ease) infinite alternate}
+@keyframes drift{to{transform:scale(1.08) translateY(-1.5%)}}
+.card-hero{position:absolute;left:50%;top:50%;width:min(56vw,860px);min-height:62svh;transform:translate(-50%,-50%);background:var(--deep);color:var(--ink);padding:32px;display:flex;flex-direction:column;gap:28px;transform-origin:0 100%}
+.card-hero h1{display:flex;justify-content:space-between;gap:16px;font-size:clamp(28px,2.6vw,40px);line-height:1}
+.card-hero .facts{font-weight:700;font-size:var(--step-lead);line-height:1.25;text-transform:uppercase;letter-spacing:-.03em}
+.card-hero .lead{font-size:var(--step-lead);line-height:1.3;max-width:30ch}
+.card-hero .foot{margin-top:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;font-size:var(--step-small)}
+.card-hero .foot a:last-child{justify-self:end;font-weight:700;font-size:var(--step-body)}
+@supports (animation-timeline:scroll()){
+  .card-hero{animation:stub linear both;animation-timeline:scroll(root);animation-range:0 70svh}
+  @keyframes stub{to{transform:translate(calc(-50vw + var(--m)),calc(50svh - 100% - var(--m))) scale(.34)}}
+}
+@media (max-width:760px){
+  .card-hero{left:var(--m);right:var(--m);width:auto;top:auto;bottom:var(--m);transform:none;min-height:70svh;padding:22px;gap:20px}
+  .card-hero h1{flex-wrap:wrap;justify-content:flex-start;gap:0 .3em;font-size:9vw;line-height:.95}
+  .card-hero .facts,.card-hero .lead{font-size:5.2vw}
+  .card-hero .foot{grid-template-columns:1fr;justify-items:stretch}
+  .card-hero .foot .btn{order:-1}
+  .card-hero .foot a:last-child{justify-self:start}
+  @supports (animation-timeline:scroll()){@keyframes stub{to{transform:translateY(0) scale(.36)}}}
 }
 
-/* Hero: full-bleed photo with copy over a dark fade */
-.hero{position:relative;height:min(86vh,760px);min-height:520px;overflow:hidden;padding:0;color:var(--on-dark)}
-.hero img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
-.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#1a0a0cd9 0%,#1a0a0c73 45%,transparent 75%)}
-.hero .copy{position:absolute;z-index:1;left:max(24px,calc((100vw - 1240px)/2 + 24px));top:50%;transform:translateY(-50%);max-width:540px}
-
-.hero h1{font-size:clamp(3rem,7vw,5.6rem);line-height:1;margin:18px 0 20px}
-.hero h1 em{color:var(--gold-light)}
-.hero p{font-size:1.08rem;color:#ead8c4;max-width:42ch}
-@media (max-width:860px){
-  .hero::after{background:linear-gradient(0deg,#1a0a0cee 15%,#1a0a0c55 60%,transparent 85%)}
-  .hero .copy{top:auto;bottom:36px;transform:none;padding-right:16px;left:16px}
+/* 2 · Occasions: the brand name pinned, occasion looks pass beneath */
+/* The title pins as an opaque band at the top; the looks scroll up beneath it, so no text ever sits on text */
+.about{padding:0 var(--m) clamp(96px,14vh,200px)}
+.about .pin{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(var(--m) + 64px) 0 clamp(16px,3vh,32px);pointer-events:none}
+.about .pin h2{font-size:clamp(4rem,10.5vw,10rem);line-height:.85;text-align:center;color:var(--accent)}
+/* Two staggered columns of looks; the right one starts lower so a look is always in view */
+.looks{position:relative;z-index:1;display:grid;grid-template-columns:repeat(12,1fr);padding-top:clamp(24px,5vh,64px)}
+.looks .col{display:flex;flex-direction:column;gap:clamp(64px,14vh,160px)}
+.looks .col.l{grid-column:2 / span 4}
+.looks .col.r{grid-column:8 / span 4;padding-top:34vh}
+.look img{width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--surface)}
+.look figcaption{margin-top:14px;max-width:34ch}
+.look b{display:block;font-size:var(--step-lead);font-weight:900;text-transform:uppercase;letter-spacing:-.03em}
+.look span{display:block;color:var(--muted);font-size:var(--step-small);margin-top:2px}
+.look p{margin-top:8px}
+.look.meaning{background:var(--deep);padding:32px}
+.look.meaning p{font-size:var(--step-lead);line-height:1.35}
+@media (max-width:760px){
+  .about .pin h2{font-size:17vw}
+  .about .pin{padding-top:calc(var(--m) + 56px)}
+  .looks{display:flex;flex-direction:column;gap:48px}
+  .looks .col{display:contents}
+  .look{width:72%}
+  .looks .col.r .look{align-self:flex-end}
+  .look.meaning{width:100%;order:-1}
 }
-.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-.btn{display:inline-block;padding:15px 32px;text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;transition:background .25s,color .25s}
-.btn-gold{background:var(--gold-light);color:#3a0f17;border:1px solid var(--gold-light)}
-.btn-gold:hover{background:transparent;color:var(--on-dark)}
-.btn-ghost{border:1px solid #e6c58799;color:var(--on-dark)}
-.btn-ghost:hover{background:#ffffff14}
 
-/* Section heads */
-section{padding:96px 0}
-@media (max-width:640px){section{padding:64px 0}}
-.head{text-align:center;margin-bottom:48px}
-.head h2{font-size:clamp(2.2rem,4vw,3.2rem);margin-top:12px}
-.head p{color:var(--muted);max-width:56ch;margin:10px auto 0}
-.orn{display:flex;align-items:center;justify-content:center;gap:14px;color:var(--gold);margin-top:16px;font-size:.8rem}
-.orn::before,.orn::after{content:"";width:60px;height:1px;background:var(--gold)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:44px 22px}
+/* 3 · Your programme: the line-up at one type size */
+.programme{background:var(--deep);padding:clamp(96px,14vh,200px) var(--m)}
+.programme h2{font-size:var(--step-head);max-width:16ch}
+.programme .intro{font-size:var(--step-lead);line-height:1.35;max-width:40ch;margin:24px 0 40px}
+.pg-form{display:grid;gap:22px;margin-bottom:56px}
+.pg-form label.name{display:grid;gap:8px;max-width:420px;font-weight:700}
+.pg-form input[type=text]{font:inherit;font-size:var(--step-lead);background:var(--white);color:var(--plum);border:0;padding:14px 16px}
+.occ{display:flex;flex-wrap:wrap;gap:10px;border:0;padding:0}
+.occ legend{font-weight:700;margin-bottom:10px}
+.occ label{cursor:pointer}
+.occ input{position:absolute;opacity:0;width:1px}
+.occ span{display:inline-block;background:var(--surface);padding:12px 18px;font-weight:700;transition:background .2s,color .2s,transform .15s var(--ease)}
+.occ label:hover span{background:var(--bg)}
+.occ input:checked+span{background:var(--accent);color:var(--accent-ink)}
+.occ input:focus-visible+span{outline:3px solid var(--white);outline-offset:2px}
+.lineup{width:100%;border-collapse:collapse;font-size:var(--step-lead);line-height:1.5;font-variant-numeric:tabular-nums}
+.lineup td,.lineup th{padding:0;text-align:left;font-weight:400;vertical-align:baseline}
+.lineup td:nth-child(1){width:33%}
+.lineup td:nth-child(2),.lineup td:nth-child(3){width:33%}
+.lineup .num{text-align:right;white-space:nowrap}
+.lineup tr.day th,.lineup tr.day td{color:var(--accent);padding-top:72px;padding-bottom:20px}
+.lineup tr.day:first-child th,.lineup tr.day:first-child td{padding-top:0}
+.lineup tr.day th{font-weight:900;text-transform:uppercase;letter-spacing:-.03em}
+.lineup tr.soft td{color:var(--muted)}
+.lineup a{text-decoration:underline 2px transparent;text-underline-offset:5px;transition:text-decoration-color .25s}
+.lineup a:hover{text-decoration-color:currentColor}
+.when input{font:inherit;font-size:var(--step-body);background:var(--white);color:var(--plum);border:0;padding:6px 10px}
+@media (max-width:760px){
+  .lineup,.lineup tbody,.lineup tr,.lineup td,.lineup th{display:block;width:auto!important}
+  .lineup tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;margin-bottom:18px}
+  .lineup tr td:first-child{grid-column:1 / -1;font-size:22px}
+  .lineup tr td:nth-child(2),.lineup tr td:nth-child(3){display:inline;font-size:14px;color:var(--muted)}
+  .lineup tr:not(.day) td:nth-child(2){grid-column:1}
+  .lineup tr:not(.day) td:nth-child(3){grid-column:1}
+  .lineup tr:not(.day) td.num{grid-column:2;grid-row:2 / span 2;font-size:14px;align-self:start}
+  .lineup tr.day{padding-top:48px;display:block}
+  .lineup tr.day th{font-size:26px;display:block}
+  .lineup tr.day td{padding:6px 0 0!important;font-size:16px;text-align:left}
+  .lineup tr.soft td{font-size:16px}
+}
 
-/* Category tiles */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
-.tile{position:relative;display:block;aspect-ratio:3/4.3;overflow:hidden;text-decoration:none;background:var(--line)}
-.tile img{width:100%;height:100%;object-fit:cover;transition:transform .8s}
-.tile:hover img{transform:scale(1.05)}
-.tile span{position:absolute;inset:auto 0 0;padding:28px 20px 22px;background:linear-gradient(transparent,#1a0a0cdd);color:var(--on-dark);font:500 1.65rem "Cormorant Garamond",serif}
-.tile small{display:block;font:500 .72rem "Jost";letter-spacing:.24em;text-transform:uppercase;color:var(--gold-light);margin-top:6px}
-@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr);gap:10px}.tile span{font-size:1.3rem;padding:20px 12px 14px}}
+/* 4 · Up close: full-bleed detail with a one-column card that moves a column each time */
+.frame{position:relative;height:100svh;overflow:hidden}
+.frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ccard{position:absolute;top:50%;transform:translateY(-50%);left:calc(var(--m) + (100vw - 2 * var(--m)) / 4 * (var(--col) - 1));width:calc((100vw - 2 * var(--m)) / 4);min-height:52svh;background:var(--plum);color:var(--white);padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.ccard h2,.ccard h3{font-size:clamp(26px,2.4vw,36px);line-height:.95}
+.ccard p{font-size:var(--step-body)}
+.ccard .fig{font-weight:700}
+.ccard img{width:100%;aspect-ratio:3/2;object-fit:cover;margin:auto 0 12px}
+.ccard .btn{width:100%}
+@media (max-width:760px){
+  .ccard{left:0;right:0;width:auto;top:auto;bottom:0;transform:none;min-height:46svh;align-items:stretch;text-align:left;display:grid;grid-template-columns:1fr 96px;align-content:start;column-gap:16px;padding:20px}
+  .ccard img{grid-column:2;grid-row:1 / span 3;margin:0;aspect-ratio:1}
+  .ccard .btn{grid-column:1 / -1;margin-top:auto}
+}
 
-/* Promos */
-.promos{padding-bottom:0}
-.promo{background:var(--surface);border:1px solid var(--line);padding:28px 26px;position:relative}
-.promo::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none}
-.promo .tag{display:inline-block;font-size:.72rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-text);margin-bottom:10px}
-.promo h3{font-size:1.65rem}
-.promo p{color:var(--muted);font-size:.95rem;margin-top:8px}
-.promo small{display:block;margin-top:12px;color:var(--maroon);font-weight:500;font-size:.85rem}
-
-/* Filters */
-.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 26px;margin:-18px 0 40px;border-bottom:1px solid var(--line)}
-.filters button{font:inherit;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 2px;margin-bottom:-1px;cursor:pointer}
-.filters button[aria-pressed="true"]{color:var(--maroon);border-bottom-color:var(--maroon)}
-.filters .sg-link{color:var(--gold-text)}
-
-/* Product cards: photo-led, no box */
-.card{background:none}
-.card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--line)}
-.gal{position:relative;overflow:hidden}
-.gal img{transition:transform .8s}
-.card:hover .gal img{transform:scale(1.03)}
-.gnav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:0;background:#fffdf9e6;color:#2a1a17;font-size:1.4rem;line-height:1;cursor:pointer;box-shadow:0 1px 6px #0003}
-.gnav.prev{left:10px}.gnav.next{right:10px}
-.gcount{position:absolute;right:10px;bottom:10px;background:#1a0a0caa;color:#fff;font-size:.72rem;padding:1px 8px}
+/* 5 · The collection: photographs with swing-tag strips */
+.collection{padding:clamp(120px,16vh,220px) var(--m)}
+.collection .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:20px;margin-bottom:40px}
+.collection h2{font-size:var(--step-head)}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:700 var(--step-body)/1 "Chivo",sans-serif;background:var(--surface);color:var(--ink);border:0;padding:12px 16px;cursor:pointer;transition:background .2s,transform .15s var(--ease)}
+.filters button:hover{background:var(--deep)}
+.filters button:active{transform:scale(.97)}
+.filters button[aria-pressed="true"]{background:var(--white);color:var(--bg)}
+.filters .sg-link{background:var(--accent);color:var(--accent-ink)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 12px}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,1fr);gap:20px 8px}}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+.card{--tag:var(--accent);--tag-ink:var(--accent-ink);scroll-margin-top:88px;display:flex;flex-direction:column;transition:transform .3s var(--ease)}
+.card:nth-child(4n+2){--tag:var(--white);--tag-ink:var(--bg)}
+.card:nth-child(4n+3){--tag:var(--plum);--tag-ink:var(--white)}
+.card:nth-child(4n+4){--tag:var(--muted);--tag-ink:var(--plum)}
+.card.flash{transform:translateY(-8px)}
+.gal{position:relative;overflow:hidden;background:var(--surface)}
+.gal img{width:100%;aspect-ratio:4/5;object-fit:cover;transition:transform .8s var(--ease)}
+.card:hover .gal img{transform:scale(1.04)}
+.gnav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:var(--white);color:var(--plum);font-size:1.4rem;line-height:1;cursor:pointer}
+.gnav.prev{left:0}.gnav.next{right:0}
+.gcount{position:absolute;left:0;bottom:0;background:var(--plum);color:var(--white);font-size:var(--step-small);padding:4px 10px}
 .gcount:empty{display:none}
-.card-body{padding:16px 0 0}
-.card .cat{color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
-.card h3{font-size:1.45rem;margin-top:4px}
-.price{font-weight:500;color:var(--maroon);margin:4px 0 12px}
-.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px;border:0;padding:0}
+.strip{background:var(--tag);color:var(--tag-ink);padding:14px;display:grid;gap:10px;flex:1;font-size:var(--step-small);font-variant-numeric:tabular-nums}
+.strip .r1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.strip h3{font-size:var(--step-body);letter-spacing:-.02em;line-height:1.05}
+.strip .price{font-weight:700;font-size:var(--step-body);white-space:nowrap}
+.strip .cat{opacity:.85}
+fieldset{border:0;padding:0;margin:0}
+.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .colours label{cursor:pointer;display:inline-flex}
 .colours input{position:absolute;opacity:0;width:1px}
-.colours i{width:22px;height:22px;border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--line)}
-.colours input:checked+i{box-shadow:0 0 0 1.5px var(--ink)}
-.colours input:focus-visible+i{outline:2px solid var(--gold);outline-offset:3px}
-.colours .cname{font-size:.85rem;color:var(--muted)}
-.sizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px;border:0;padding:0}
+.colours i{width:22px;height:22px;border-radius:50%;outline:2px solid transparent;outline-offset:2px;box-sizing:border-box;border:2px solid var(--tag)}
+.colours input:checked+i{outline-color:var(--tag-ink)}
+.colours input:focus-visible+i{outline:3px solid var(--tag-ink)}
+.colours .cname{font-size:var(--step-small)}
+.sizes{display:flex;flex-wrap:wrap;gap:4px}
 .sizes label{cursor:pointer}
 .sizes input{position:absolute;opacity:0;width:1px}
-.sizes span{display:inline-block;min-width:42px;text-align:center;padding:6px 10px;border:1px solid var(--line);font-size:.82rem;background:var(--surface)}
-.sizes input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--surface)}
-.sizes input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
-.sizes input:disabled+span{opacity:.4;text-decoration:line-through;cursor:not-allowed}
-.note{min-height:1.4em;font-size:.82rem;color:var(--gold-text);margin-bottom:8px}
-.buy{display:flex;gap:8px}
-.stepper{display:flex;align-items:center;border:1px solid var(--line);background:var(--surface);flex:0 0 auto}
-.stepper button{width:34px;height:42px;border:0;background:none;color:var(--ink);font-size:1.1rem;cursor:pointer}
+.sizes span{display:inline-block;min-width:40px;text-align:center;padding:8px 10px;background:color-mix(in srgb,var(--tag-ink) 12%,transparent);font-weight:700}
+.sizes input:checked+span{background:var(--tag-ink);color:var(--tag)}
+.sizes input:focus-visible+span{outline:3px solid var(--tag-ink);outline-offset:1px}
+.sizes input:disabled+span{opacity:.35;text-decoration:line-through;cursor:not-allowed}
+.note{min-height:1.3em;font-weight:700}
+.buy{display:flex;gap:6px}
+.stepper{display:flex;align-items:center;background:color-mix(in srgb,var(--tag-ink) 12%,transparent);flex:0 0 auto}
+.stepper button{width:34px;height:44px;border:0;background:none;color:inherit;font-size:1.1rem;cursor:pointer}
 .stepper button:disabled{opacity:.35;cursor:not-allowed}
-.stepper output{min-width:22px;text-align:center;font-weight:500}
-.btn-solid{flex:1;background:var(--maroon);color:var(--surface);border:1px solid var(--maroon);padding:12px 16px;font:inherit;font-size:.75rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
-.btn-solid:hover{background:transparent;color:var(--maroon)}
-.btn-solid:disabled{opacity:.45;cursor:not-allowed;background:var(--maroon);color:var(--surface)}
-.low{color:var(--gold-text);font-size:.85rem;font-weight:400}
-select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:10px 12px;width:100%}
+.stepper output{min-width:20px;text-align:center;font-weight:700}
+.btn-solid{flex:1;background:var(--tag-ink);color:var(--tag);border:0;padding:12px;font:700 var(--step-small)/1 "Chivo",sans-serif;cursor:pointer;transition:transform .15s var(--ease),opacity .2s}
+.btn-solid:active{transform:scale(.97)}
+.btn-solid:disabled{opacity:.45;cursor:not-allowed}
+.empty{font-size:var(--step-lead);padding:48px 0}
 
-/* Quote band */
-.quote{background:var(--maroon-deep);color:var(--on-dark);text-align:center;padding:88px 24px}
-.quote p{font:italic 500 clamp(1.6rem,3vw,2.4rem)/1.35 "Cormorant Garamond",serif;max-width:30ch;margin:0 auto}
-.quote small{display:block;margin-top:20px;letter-spacing:.3em;text-transform:uppercase;font-size:.72rem;color:var(--gold-light)}
+/* 6 · How it works: one verb at a time */
+.verbs .panel-v{position:relative;height:100svh;overflow:hidden}
+.verbs .panel-v>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.72)}
+.verbs .hold{position:sticky;top:50%;transform:translateY(-50%);text-align:center;z-index:1}
+.verbs h3{font-size:clamp(96px,17vw,300px);line-height:.85;color:var(--accent)}
+.verbs p{position:absolute;left:var(--m);bottom:var(--m);max-width:34ch;font-size:var(--step-lead);line-height:1.35;background:var(--plum);padding:18px 20px;z-index:1}
+@media (max-width:760px){.verbs h3{font-size:24vw}.verbs p{right:var(--m);font-size:16px}}
 
-/* About / promise */
-.promise{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;text-align:center}
-.promise h3{font-size:1.6rem;color:var(--maroon)}
-.promise p{color:var(--muted);font-size:.95rem;margin-top:8px;max-width:32ch;margin-inline:auto}
-@media (max-width:760px){.promise{grid-template-columns:1fr;gap:28px}}
+/* 7 · Contact: the email as display type */
+.contact{background:var(--white);color:var(--plum);min-height:68svh;padding:var(--m);display:grid;grid-template-rows:auto 1fr auto auto}
+.contact h2{font-size:var(--step-lead);text-transform:none;letter-spacing:-.02em;line-height:1.3;max-width:24ch;font-weight:700}
+.contact .mail{align-self:end;font:400 clamp(28px,6.6vw,120px)/1 "Chivo",sans-serif;letter-spacing:-.04em;text-decoration:none;color:var(--bg);margin:8vh 0 6vh;overflow-wrap:anywhere;transition:color .2s}
+.contact .mail:hover{color:var(--plum)}
+.contact .corners{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px 32px;font-size:var(--step-body)}
+.contact .corners a{font-weight:700}
+@media (max-width:760px){.contact{min-height:70svh}.contact .mail{font-size:11.5vw;margin:6vh 0}.contact .corners{flex-direction:column}}
 
-/* How to order */
-.steps{counter-reset:s;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.step{border-top:1px solid var(--gold);padding-top:22px}
-.step::before{counter-increment:s;content:"0" counter(s);display:block;font:500 2.4rem/1 "Cormorant Garamond",serif;color:var(--gold);margin-bottom:12px}
-.step h3{font-size:1.5rem}
-.step p{color:var(--muted);font-size:.95rem;margin-top:6px}
+/* 8 · Footer: the name first, places under it */
+footer{background:var(--plum);color:var(--white);padding:0 var(--m) var(--m);overflow:hidden}
+footer .name{font:900 clamp(40px,10.6vw,200px)/.85 "Chivo",sans-serif;text-transform:uppercase;letter-spacing:-.05em;white-space:nowrap;padding-top:clamp(48px,8vh,96px)}
+footer .row{display:grid;grid-template-columns:5fr 7fr;gap:var(--m);margin-top:72px}
+footer .places a{display:block;color:var(--accent);font-size:var(--step-lead);font-weight:700;text-decoration:none;line-height:1.3}
+footer .places a:hover{color:var(--white)}
+footer .links{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+footer .links a,footer .links button{display:block;color:var(--muted);text-decoration:none;font:inherit;font-size:var(--step-body);background:none;border:0;padding:0;margin-bottom:6px;cursor:pointer;text-align:left}
+footer .links a:hover,footer .links button:hover{color:var(--white)}
+footer .legal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:96px;font-size:var(--step-small);color:var(--muted)}
+@media (max-width:760px){footer .row{grid-template-columns:1fr}footer .links{grid-template-columns:repeat(2,1fr)}}
 
-/* Contact */
-.contact{background:var(--maroon-deep);color:var(--on-dark);text-align:center}
-.contact .eyebrow{color:var(--gold-light)}
-.contact h2{font-size:clamp(2.2rem,4vw,3.2rem);margin-top:12px}
-.contact p{color:#ead8c4;max-width:50ch;margin:12px auto 0}
-.contact .btns{justify-content:center}
-.details{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 36px;margin-top:36px;font-size:.95rem;color:#ead8c4}
-.details a{text-decoration:none;border-bottom:1px solid #e6c58766}
-footer{padding:32px 0;text-align:center;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+/* Entrances: parts of each section rise in turn (content is visible without script) */
+.js [data-rise]{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0) * 75ms)}
+.js [data-rise].in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .hero>img{animation:none}
+  .card-hero{animation:none!important}
+  .js [data-rise]{opacity:1;transform:none;transition:none}
+  *{transition-duration:0s!important}
+}
 
-/* Bag, checkout and size guide panels */
-dialog{border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(440px,100vw);background:var(--surface);color:var(--ink)}
-dialog::backdrop{background:#1a0a0c99}
+/* Bag, checkout and size guide: white sheets over the page */
+dialog{--surface:#ffffff;--ink:#2a0a12;--muted:#6b4a55;--line:#efd9e1;--bg:#fbf0f4;--maroon:#b5134a;--gold:#b5134a;--gold-text:#8a0f38;
+  border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(440px,100vw);background:var(--surface);color:var(--ink);font-size:16px;text-transform:none}
+dialog::backdrop{background:#2a0a12aa}
 dialog.center{margin:auto;height:auto;max-height:90dvh;width:min(480px,calc(100vw - 32px))}
+dialog h2,dialog h3{letter-spacing:-.03em}
 .panel{display:flex;flex-direction:column;height:100%}
-.panel-head{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid var(--line)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;background:var(--bg)}
 .panel-head h2{font-size:1.8rem}
 .x{background:none;border:0;font-size:1.6rem;line-height:1;color:var(--muted);cursor:pointer;padding:4px 8px}
 .panel-body{flex:1;overflow:auto;padding:20px 22px}
-.panel-foot{padding:16px 22px 22px;border-top:1px solid var(--line);display:grid;gap:10px}
-.panel-foot .btn-solid{padding:15px}
-.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.panel-foot{padding:16px 22px 22px;background:var(--bg);display:grid;gap:10px}
+.panel-foot .btn-solid,dialog .btn-solid{--tag:#ffffff;--tag-ink:var(--maroon);padding:16px;font-size:16px}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:14px 0}
+.line+.line{border-top:8px solid var(--bg)}
 .line img{width:64px;height:84px;object-fit:cover}
-.line strong{font:500 1.15rem "Cormorant Garamond",serif}
+.line strong{font-weight:700}
 .line small{color:var(--muted);display:block}
 .qty{display:flex;align-items:center;gap:6px;margin-top:4px}
-.qty button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
-.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem;padding:0}
+.qty button{width:32px;height:32px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.9rem;padding:0}
 .row{display:flex;justify-content:space-between}
-.row.total{font-weight:500;font-size:1.1rem}
-.empty{color:var(--muted);text-align:center;padding:48px 0}
-.field{display:grid;gap:4px;margin-bottom:14px;font-size:.9rem}
-.field>span{font-weight:500}
-fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:8px}
-legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
-.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);padding:12px 14px;font-size:.9rem;cursor:pointer}
-.opt:has(input:checked){border-color:var(--maroon)}
+.row.total{font-weight:700;font-size:1.1rem}
+dialog .empty{color:var(--muted);text-align:center;font-size:1rem}
+.field{display:grid;gap:4px;margin-bottom:14px;font-size:.95rem}
+.field>span{font-weight:700}
+select,input,textarea{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:0;padding:12px;width:100%}
+dialog fieldset{display:grid;gap:8px;margin:0 0 14px}
+legend{font-weight:700;font-size:.95rem;margin-bottom:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;background:var(--bg);padding:12px 14px;font-size:.95rem;cursor:pointer}
+.opt:has(input:checked){background:#ffe3ec}
 .opt input{width:auto;margin-top:4px;accent-color:var(--maroon)}
 .opt small{color:var(--muted);display:block}
-.err{color:#b3261e;font-size:.85rem;min-height:1.2em}
-.done-mark{width:64px;height:64px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-size:1.8rem;margin:8px auto 16px}
+.err{color:#b3261e;font-size:.9rem;min-height:1.2em}
+.done-mark{width:64px;height:64px;background:var(--maroon);color:#fff;display:grid;place-items:center;font-size:1.8rem;margin:8px auto 16px}
 .done h3{text-align:center;font-size:2rem}
 .done p{color:var(--muted);text-align:center;margin:8px 0 18px}
 .summary{background:var(--bg);padding:14px 16px;font-size:.9rem;white-space:pre-wrap;font-family:inherit}
-.bank{border:1px solid var(--gold);padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:.92rem}
+.bank{background:var(--bg);padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:.95rem}
 .bank span{color:var(--muted)}
-.btn-wa{display:block;text-align:center;background:#1f7a45;color:#fff;padding:14px;text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase}
-.hint{color:var(--muted);font-size:.88rem;margin:4px 0 14px}
-.sg{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:12px}
-.sg th,.sg td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
+.btn-wa{display:block;text-align:center;background:#1f7a45;color:#fff;padding:16px;text-decoration:none;font-weight:700}
+dialog .btn{background:var(--bg);color:var(--ink)}
+.hint{color:var(--muted);font-size:.95rem;margin:4px 0 14px}
+.sg{width:100%;border-collapse:collapse;font-size:.95rem;margin-bottom:12px}
+.sg tr:nth-child(odd) td{background:var(--bg)}
+.sg th,.sg td{padding:8px;text-align:center}
 </style>
 </head>
 <body>
-
-<div class="announce">Free pickup in Auckland · NZ-wide delivery · Card or bank transfer</div>
-<header>
-  <div class="wrap">
-    <nav aria-label="Collections">
-      <a href="#collections">Shop</a>
-      <a href="#about">Our story</a>
-      <a href="#order">How to order</a>
-    </nav>
-    <a class="logo" href="#top"><b>Srimathi Libas</b><small>Auckland</small></a>
-    <nav aria-label="Account">
-      <a href="#contact">Contact</a>
-      <button class="bag-btn" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button>
-    </nav>
-  </div>
-</header>
+<div class="bagdock"><button class="bag-btn" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button></div>
 
 <main id="top">
-  <section class="hero" aria-labelledby="hero-title">
-    <img src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=1800&q=80" alt="Bride in a jewelled maroon and teal lehenga in a stone archway">
-    <div class="copy">
-      <h1 id="hero-title">Draped in <em>heritage</em></h1>
-      <p>Handpicked lehengas, sarees, suits and co-ord sets from India, brought to the women of Aotearoa for every celebration.</p>
-      <div class="btns">
-        <a class="btn btn-gold" href="#collections">Shop the collection</a>
-        <a class="btn btn-ghost" href="https://wa.me/64210747404" target="_blank" rel="noopener">Chat on WhatsApp</a>
+  <div class="hero-wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <img src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=2400&q=80" alt="Bride in a jewelled maroon and teal lehenga in a stone archway" width="2400" height="1600">
+      <div class="card-hero">
+        <h1 id="hero-title"><span>Srimathi</span> <span>Libas</span> <span>Auckland</span></h1>
+        <p class="facts">Lehengas, sarees, suits, co&#8209;ords<br>In stock in Auckland<br>From <span id="from">NZ$109</span>, delivered NZ-wide</p>
+        <p class="lead">Indian attire for every invitation that comes your way.</p>
+        <div class="foot"><span>Photo: Unsplash</span><a class="btn" href="#programme">Plan my outfits</a><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp us</a></div>
       </div>
+    </section>
+  </div>
+
+  <section class="about" id="about" aria-labelledby="about-title">
+    <div class="pin"><h2 id="about-title">Srimathi Libas</h2></div>
+    <div class="looks" id="looks">
+      <div class="col l"><figure class="look meaning" data-rise><figcaption><b>Dressed for the occasion</b><p>Lehengas, sarees, suits and co-ords, handpicked in India in small batches and kept in stock here in Auckland. Every look below is chosen for one occasion.</p></figcaption></figure></div>
+      <div class="col r"></div>
     </div>
   </section>
 
-  <section id="categories" aria-labelledby="cat-title">
-    <div class="wrap">
-      <div class="head"><div class="eyebrow">Collections</div><h2 id="cat-title">Find your occasion</h2><div class="orn" aria-hidden="true">✦</div></div>
-      <div class="tiles" id="cats"></div>
-    </div>
+  <section class="programme" id="programme" aria-labelledby="pg-title">
+    <h2 id="pg-title" data-rise>Your programme</h2>
+    <p class="intro" data-rise style="--i:1">Tick your occasions and add their dates. We'll show what's in stock for each, and the last day to order for courier.</p>
+    <form class="pg-form" onsubmit="return false" data-rise style="--i:2">
+      <label class="name">Your name (optional)<input type="text" id="pg-name" maxlength="30" autocomplete="given-name" placeholder="Priya"></label>
+      <fieldset class="occ" id="occ"><legend>Your occasions</legend></fieldset>
+    </form>
+    <table class="lineup" aria-labelledby="pg-title"><tbody id="pg-rows"><tr class="soft"><td colspan="4">Loading the collection…</td></tr></tbody></table>
+    <noscript><p class="intro">Message us on WhatsApp with your occasions and dates, and we'll suggest what to wear.</p></noscript>
   </section>
 
-  <section id="promos" class="promos" aria-labelledby="promo-title" hidden>
-    <div class="wrap">
-      <div class="head"><div class="eyebrow">What's new</div><h2 id="promo-title">Offers &amp; updates</h2><div class="orn" aria-hidden="true">✦</div></div>
-      <div class="grid" id="promo-list"></div>
-    </div>
+  <section id="showcase" aria-labelledby="show-title"></section>
+
+  <section class="collection" id="collections" aria-labelledby="col-title">
+    <div class="top"><h2 id="col-title" data-rise>The collection</h2><div class="filters" role="group" aria-label="Filter by category" data-rise style="--i:1"></div></div>
+    <div class="grid" id="products"></div>
   </section>
 
-  <section id="collections" aria-labelledby="col-title">
-    <div class="wrap">
-      <div class="head"><div class="eyebrow">The collection</div><h2 id="col-title">Shop all pieces</h2><div class="orn" aria-hidden="true">✦</div></div>
-      <div class="filters" role="group" aria-label="Filter by category"></div>
-      <div class="grid" id="products"></div>
-    </div>
+  <section class="verbs" id="order" aria-labelledby="order-title">
+    <h2 id="order-title" class="sr">How ordering works</h2>
+    <div class="panel-v"><img src="https://images.unsplash.com/photo-1601432093209-8af1fd74b054?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Choose</h3></div><p>Pick the colour, size and how many. Stock is real, often one or two of each.</p></div>
+    <div class="panel-v"><img src="https://images.unsplash.com/photo-1759840278381-bf7d5e332050?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Pay</h3></div><p>Card, Apple Pay or Google Pay, or a bank transfer with your order number.</p></div>
+    <div class="panel-v"><img src="https://images.unsplash.com/photo-1759906760638-eeffcb471e53?w=2000&h=1250&fit=crop&q=75" alt="" loading="lazy" width="2000" height="1250"><div class="hold"><h3>Wear</h3></div><p>Free pickup in Auckland, or tracked courier across New Zealand in 2 to 5 working days.</p></div>
   </section>
 
-  <div class="quote"><p>“Every piece is chosen as if for a family wedding — for its fabric, its finish, and how it makes you feel.”</p><small>— Srimathi Libas</small></div>
-
-  <section id="about" aria-labelledby="about-title">
-    <div class="wrap">
-      <div class="head"><div class="eyebrow">Our story</div><h2 id="about-title">A little piece of India, here in Auckland</h2>
-        <p>Srimathi Libas makes beautiful Indian traditional wear easy to find in New Zealand, without the guesswork of ordering from overseas.</p><div class="orn" aria-hidden="true">✦</div></div>
-      <div class="promise">
-        <div><h3>Handpicked in India</h3><p>Small batches, chosen for fabric, finish and fit.</p></div>
-        <div><h3>Styled in Auckland</h3><p>Friendly one-on-one help choosing your outfit.</p></div>
-        <div><h3>For every occasion</h3><p>Weddings, festivals, poojas and every celebration in between.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="order" aria-labelledby="order-title" style="padding-top:0">
-    <div class="wrap">
-      <div class="head"><div class="eyebrow">Simple &amp; personal</div><h2 id="order-title">How to order</h2><div class="orn" aria-hidden="true">✦</div></div>
-      <div class="grid steps">
-        <div class="step"><h3>Choose</h3><p>Pick your colour, size (see the size guide) and quantity, then add it to your bag.</p></div>
-        <div class="step"><h3>Checkout</h3><p>Enter your details and choose Auckland pickup or NZ-wide delivery.</p></div>
-        <div class="step"><h3>Pay</h3><p>Pay securely by card, Apple Pay or Google Pay — or by bank transfer using your order number.</p></div>
-        <div class="step"><h3>Receive</h3><p>Collect in Auckland, or we courier it to your door once payment is in.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="contact" class="contact" aria-labelledby="contact-title">
-    <div class="wrap">
-      <div class="eyebrow">Get in touch</div>
-      <h2 id="contact-title">Find your perfect outfit</h2>
-      <p>Have a celebration coming up? We'd love to help you look and feel your best.</p>
-      <div class="btns">
-        <a class="btn btn-gold" href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp us</a>
-        <a class="btn btn-ghost" href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Visit our Facebook</a>
-      </div>
-      <div class="details">
-        <span>📞 <a href="tel:+64210747404">+64 210 747 404</a></span>
-        <span>✉️ <a href="mailto:Srimathilibasnz@gmail.com">Srimathilibasnz@gmail.com</a></span>
-        <span>📍 Auckland, New Zealand</span>
-      </div>
-    </div>
+  <section class="contact" id="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title" data-rise>Tell us the occasion and your size. We'll help you choose.</h2>
+    <span></span>
+    <a class="mail" href="mailto:Srimathilibasnz@gmail.com" data-rise>srimathilibasnz@gmail.com</a>
+    <div class="corners"><span><a href="tel:+64210747404">+64 210 747 404</a> · Auckland, New Zealand</span><span><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp</a> · <a href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Facebook</a></span></div>
   </section>
 </main>
 
-<footer>© <span id="y">2026</span> Srimathi Libas · Indian Traditional Attire for Women · Auckland, New Zealand</footer>
+<footer>
+  <div class="name" aria-hidden="true">Srimathi Libas</div>
+  <div class="row">
+    <div class="places"><a href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp +64 210 747 404</a><a href="mailto:Srimathilibasnz@gmail.com">Srimathilibasnz@gmail.com</a><a href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Facebook</a></div>
+    <div class="links">
+      <div><a href="#programme">Your programme</a><a href="#collections">The collection</a><a href="#about">Occasions</a></div>
+      <div><a href="#order">How ordering works</a><button type="button" id="foot-guide">Size guide</button><a href="#contact">Contact</a></div>
+      <div><span style="color:var(--muted)">Auckland, New Zealand</span><span style="color:var(--muted);display:block">Pickup free · courier $12</span></div>
+    </div>
+  </div>
+  <div class="legal"><span>© <span id="y">2026</span> Srimathi Libas. Photographs: Unsplash.</span><a href="#top">Back to top</a></div>
+</footer>
 <dialog id="size-guide" class="center" aria-labelledby="sg-title">
   <div class="panel">
     <div class="panel-head"><h2 id="sg-title">Size Guide</h2><button class="x" data-close aria-label="Close">×</button></div>
@@ -358,14 +410,14 @@ legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
       <label class="field"><span>Email</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
       <fieldset>
         <legend>Pickup or delivery *</legend>
-        <label class="opt"><input type="radio" name="method" value="pickup" checked><span>Pickup in Auckland<small>Free — we'll message you the pickup address</small></span></label>
+        <label class="opt"><input type="radio" name="method" value="pickup" checked><span>Pickup in Auckland<small>Free. We'll message you the pickup address</small></span></label>
         <label class="opt"><input type="radio" name="method" value="delivery"><span>NZ-wide courier<small id="ship-label"></small></span></label>
       </fieldset>
       <label class="field" id="addr-field" hidden><span>Delivery address *</span><textarea name="address" rows="3" maxlength="300" autocomplete="street-address"></textarea></label>
       <fieldset>
         <legend>Payment *</legend>
         <label class="opt" id="pay-card-opt" hidden><input type="radio" name="pay" value="card"><span>Card, Apple Pay or Google Pay<small>Pay securely now with Stripe</small></span></label>
-        <label class="opt"><input type="radio" name="pay" value="bank" checked><span>Bank transfer<small>Pay from your bank — we'll ship once it arrives</small></span></label>
+        <label class="opt"><input type="radio" name="pay" value="bank" checked><span>Bank transfer<small>Pay from your bank. We'll send it once the money arrives</small></span></label>
       </fieldset>
       <label class="field"><span>Notes (measurements, event date, promo code…)</span><textarea name="notes" rows="2" maxlength="300"></textarea></label>
       <p class="err" id="form-err" role="alert"></p>
@@ -382,7 +434,7 @@ legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
   <div class="panel" data-step="done" hidden>
     <div class="panel-head"><h2 id="done-head">Order Placed</h2><button class="x" data-close aria-label="Close">×</button></div>
     <div class="panel-body done">
-      <div class="done-mark" aria-hidden="true">✓</div>
+      
       <h3 id="done-title">Thank you!</h3>
       <p id="done-text"></p>
       <div class="bank" id="bank-box" hidden>
@@ -402,6 +454,7 @@ legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
 
 <script type="module">
 document.getElementById('y').textContent=new Date().getFullYear();
+document.documentElement.classList.add('js'); // early, so entrance styles apply before content renders
 
 const SHOP_PHONE='64210747404', SHOP_EMAIL='Srimathilibasnz@gmail.com';
 const SHIPPING=12; // keep in sync with SHIPPING in order.js, which is what card payments actually charge
@@ -424,21 +477,105 @@ const left=(id,colour,size)=>stockOf(id,colour,size)-inBag(id,colour,size);
 // Same wording as itemName() in order.js: colour only named when there's a choice
 const label=(p,i)=>`${p.name}${p.colours.length>1?' — '+i.colour:''} (${i.size})`;
 
-// What's New: active promos that haven't expired (NZ date)
+// What's on now: active promos that haven't expired (NZ date); shown at the top of the programme
 const today=new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'});
 const live=PROMOS.filter(p=>p.active&&(!p.until||p.until>=today));
-$('#promos').hidden=!live.length;
-$('#promo-list').innerHTML=live.map(p=>`
-  <article class="promo"><span class="tag">${esc(p.tag)}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p>
-  ${p.until?`<small>Until ${new Date(p.until+'T00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long'})}</small>`:''}</article>`).join('');
 
 let cart=[];
 try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>stockOf(i.id,i.colour,i.size)>0).map(i=>({...i,qty:Math.min(i.qty,stockOf(i.id,i.colour,i.size))}))}catch{}
 const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag(); PRODUCTS.forEach(syncCard)};
 
-// Shop grid + filters
+// ---- The occasions a Srimathi dresses for. Sample mapping of occasion -> categories, for the client to confirm ----
+const OCCASIONS=[
+  ['Mehndi',['Co-ord Sets','Ethnic Suits'],'Light co-ords and suits to sit in while the henna dries.'],
+  ['Haldi',['Co-ord Sets','Ethnic Suits'],'Easy pieces in sunny colours for the turmeric morning.'],
+  ['Sangeet',['Lehengas','Co-ord Sets'],'Lehengas and co-ords that twirl through a night of dancing.'],
+  ['Wedding',['Lehengas','Sarees'],'Bridal lehengas and silk sarees for the day itself.'],
+  ['Reception',['Sarees','Lehengas'],'Zari sarees that catch the light at the evening party.'],
+  ['Diwali',['Sarees','Ethnic Suits','Lehengas'],'Silk and colour for lamps, sweets and family visits.'],
+  ['Eid',['Ethnic Suits','Co-ord Sets'],'Graceful suits for prayers and lunch with the family.'],
+  ['Pooja',['Sarees','Ethnic Suits'],'Simple, beautiful pieces for prayers at home or at the temple.'],
+];
+const firstColour=p=>p.colours.find(c=>colourTotal(p,c)>0)||p.colours[0];
+const inStock=PRODUCTS.filter(p=>totalStock(p)>0);
+const sizesIn=p=>p.sizes.filter(s=>p.colours.some(c=>c.stock[s]>0)).join(' ');
+// Larger landscape crop for full-bleed use (Unsplash photos only; uploaded photos are used as they are)
+const big=u=>/images\.unsplash\.com/.test(u)?u.replace(/\?.*$/,'?w=2000&h=1250&fit=crop&crop=entropy&q=75'):u;
+const fmtDay=d=>d.toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short'});
+if(PRODUCTS.length)$('#from').textContent=nzd(Math.min(...PRODUCTS.map(p=>p.price))).replace('.00','');
+
+// Occasions: one look per occasion passes under the pinned brand name
+const usedLook=new Set();
+const looks=OCCASIONS.map(([o,cats,line])=>{const p=inStock.find(p=>cats.includes(p.cat)&&!usedLook.has(p.id)); if(p)usedLook.add(p.id); return p&&{o,p,line}}).filter(Boolean).slice(0,5);
+looks.forEach((l,i)=>$(`#looks .col.${i%2?'l':'r'}`).insertAdjacentHTML('beforeend',`
+  <figure class="look" data-rise>
+    <img src="${esc(firstColour(l.p).photos[0])}" alt="${esc(l.p.name)}" loading="lazy" width="600" height="750">
+    <figcaption><b>${esc(l.o)}</b><span>${esc(l.p.name)}, ${nzd(l.p.price)}</span><p>${esc(l.line)}</p></figcaption>
+  </figure>`));
+
+// Your programme (the live thing): name + occasions + dates -> in-stock pieces and the order-by date
+const PG_KEY='sl-programme';
+const prog={name:'',events:{Sangeet:'',Wedding:''}};
+try{const s=JSON.parse(localStorage.getItem(PG_KEY)); if(s&&typeof s.events==='object'){prog.name=String(s.name||'');prog.events=s.events}}catch{}
+// Courier takes up to 5 working days, so order 5 weekdays before the event
+function orderBy(date){const d=new Date(date+'T12:00'); for(let n=5;n>0;){d.setDate(d.getDate()-1); const w=d.getDay(); if(w&&w<6)n--} return d}
+console.assert(fmtDay(orderBy('2026-12-14'))===fmtDay(new Date('2026-12-07T12:00')),'orderBy skips weekends');
+$('#occ').insertAdjacentHTML('beforeend',OCCASIONS.map(([o])=>`<label><input type="checkbox" value="${o}"${o in prog.events?' checked':''}><span>${o}</span></label>`).join(''));
+$('#pg-name').value=prog.name;
+function renderProgramme(){
+  const name=prog.name.trim();
+  $('#pg-title').textContent=name?`${name}'s programme`:'Your programme';
+  const now=new Date(today+'T12:00'), rows=[];
+  if(live.length){
+    rows.push(`<tr class="day"><th colspan="3" scope="colgroup">On now</th><td class="num"></td></tr>`);
+    live.forEach(p=>rows.push(`<tr class="soft"><td>${esc(p.title)}</td><td colspan="2">${esc(p.text)}</td><td class="num">${p.until?'until '+fmtDay(new Date(p.until+'T12:00')):''}</td></tr>`));
+  }
+  const evs=Object.entries(prog.events).filter(([o])=>OCCASIONS.some(x=>x[0]===o)).sort(([,a],[,b])=>(a||'9999').localeCompare(b||'9999'));
+  for(const [o,date] of evs){
+    const occ=OCCASIONS.find(x=>x[0]===o);
+    let when='Add the date';
+    if(date){const d=new Date(date+'T12:00'), ob=orderBy(date); when=d<now?'This date has passed':ob<now?'Too close for courier: pick up in Auckland':`Order by ${fmtDay(ob)} for courier`}
+    rows.push(`<tr class="day"><th scope="colgroup">${o}</th><td></td><td><label class="when"><span class="sr">Date of ${o}</span><input type="date" data-ev="${o}" value="${esc(date)}" min="${today}"></label></td><td class="num">${when}</td></tr>`);
+    const ps=inStock.filter(p=>occ[1].includes(p.cat));
+    rows.push(...(ps.length?ps.map(p=>`<tr><td><a href="#p-${esc(p.id)}" data-go="${esc(p.id)}">${esc(p.name)}</a></td><td>${esc(p.cat)}</td><td>${sizesIn(p)}</td><td class="num">${nzd(p.price)}</td></tr>`)
+      :[`<tr class="soft"><td colspan="4">Nothing in stock for ${o} right now. Message us and we'll find something.</td></tr>`]));
+  }
+  if(!evs.length)rows.push(`<tr class="soft"><td colspan="4">Tick an occasion above to see what to wear.</td></tr>`);
+  $('#pg-rows').innerHTML=rows.join('');
+  try{localStorage.setItem(PG_KEY,JSON.stringify(prog))}catch{}
+}
+$('#pg-name').oninput=e=>{prog.name=e.target.value.slice(0,30);renderProgramme()};
+$('#occ').onchange=e=>{const o=e.target.value; if(e.target.checked)prog.events[o]??='';else delete prog.events[o]; renderProgramme()};
+$('#pg-rows').addEventListener('change',e=>{const o=e.target.dataset.ev; if(o){prog.events[o]=e.target.value; renderProgramme()}});
+// Jump from a programme row or a close-up to that piece in the collection
+function goTo(id){
+  const all=document.querySelector('.filters button');
+  if(all&&all.getAttribute('aria-pressed')!=='true')all.click();
+  const el=document.getElementById('p-'+id); if(!el)return;
+  el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1400);
+}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-go]'); if(a){e.preventDefault(); goTo(a.dataset.go)}});
+renderProgramme();
+
+// Up close: the two dearest pieces from different categories, detail full-bleed, the whole piece on the card
+const feat=[...inStock].sort((a,b)=>b.price-a.price).filter((p,i,a)=>a.findIndex(x=>x.cat===p.cat)===i).slice(0,2);
+$('#showcase').hidden=!feat.length;
+$('#showcase').innerHTML=feat.map((p,i)=>{const ph=firstColour(p).photos[0], H=i?'h3':'h2'; return `
+  <div class="frame" style="--col:${i+2}">
+    <img src="${esc(big(ph))}" alt="Close-up of the ${esc(p.name)}" loading="lazy" width="2000" height="1250">
+    <div class="ccard" data-rise>
+      <${H}${i?'':' id="show-title"'}>${esc(p.name)}</${H}>
+      <p>${esc(p.cat)}, sizes ${esc(sizesIn(p)||p.sizes.join(' '))}</p>
+      <p class="fig">${nzd(p.price)}</p>
+      <img src="${esc(ph)}" alt="The whole ${esc(p.name)}" loading="lazy" width="600" height="400">
+      <a class="btn" href="#p-${esc(p.id)}" data-go="${esc(p.id)}">Choose your size</a>
+    </div>
+  </div>`}).join('');
+
+// The collection: photographs with swing-tag strips
 const cats=['All',...new Set(PRODUCTS.map(p=>p.cat))];
-$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('')+'<button class="sg-link" data-guide>📏 Size guide</button>';
+$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('')+'<button class="sg-link" data-guide>Size guide</button>';
 $('.filters').onclick=e=>{
   if(e.target.dataset.guide!==undefined)return $('#size-guide').showModal();
   if(e.target.tagName!=='BUTTON')return;
@@ -446,29 +583,26 @@ $('.filters').onclick=e=>{
   const c=e.target.textContent;
   document.querySelectorAll('#products .card').forEach(el=>el.hidden=c!=='All'&&el.dataset.cat!==c);
 };
-// Category tiles: first photo in each category; tapping one filters the collection below
-const firstOf={}; PRODUCTS.forEach(p=>firstOf[p.cat]??=p);
-$('#categories').hidden=Object.keys(firstOf).length<2;
-$('#cats').innerHTML=Object.entries(firstOf).map(([c,p])=>`<a class="tile" href="#collections" data-cat="${esc(c)}"><img src="${esc(p.colours[0].photos[0])}" alt="" loading="lazy"><span>${esc(c)}<small>Shop now →</small></span></a>`).join('');
-$('#cats').onclick=e=>{const t=e.target.closest('[data-cat]'); if(t)[...document.querySelectorAll('.filters button')].find(b=>b.textContent===t.dataset.cat)?.click()};
+$('#foot-guide').onclick=()=>$('#size-guide').showModal();
 
-$('#products').innerHTML=PRODUCTS.map(p=>{
-  const first=p.colours.find(c=>colourTotal(p,c)>0)||p.colours[0];
+$('#products').innerHTML=PRODUCTS.map((p,i)=>{
+  const first=firstColour(p);
   return `
-  <article class="card" data-cat="${esc(p.cat)}" data-id="${esc(p.id)}">
+  <article class="card" id="p-${esc(p.id)}" data-cat="${esc(p.cat)}" data-id="${esc(p.id)}" data-rise style="--i:${i%4}">
     <div class="gal" data-ph="0">
-      <img src="${esc(first.photos[0])}" alt="${esc(p.name)} in ${esc(first.name)}" loading="lazy">
+      <img src="${esc(first.photos[0])}" alt="${esc(p.name)} in ${esc(first.name)}" loading="lazy" width="600" height="750">
       <button type="button" class="gnav prev" data-nav="-1" aria-label="Previous photo">‹</button>
       <button type="button" class="gnav next" data-nav="1" aria-label="Next photo">›</button>
       <span class="gcount"></span>
     </div>
-    <div class="card-body">
-      <div class="cat">${esc(p.cat)}</div><h3>${esc(p.name)}</h3>
-      <div class="price">${nzd(p.price)}</div>
-      <fieldset class="colours"${p.colours.length>1?'':' hidden'}><legend class="sr">Colour for ${esc(p.name)}</legend>
-        ${p.colours.map(c=>`<label title="${esc(c.name)}"><input type="radio" name="col-${esc(p.id)}" value="${esc(c.name)}"${c===first?' checked':''}><i style="background:${esc(c.hex)}"></i><span class="sr">${esc(c.name)}</span></label>`).join('')}
-        <span class="cname"></span>
-      </fieldset>
+    <div class="strip">
+      <div class="r1"><h3>${esc(p.name)}</h3><span class="price">${nzd(p.price)}</span></div>
+      <div class="r1"><span class="cat">${esc(p.cat)}</span>
+        <fieldset class="colours"${p.colours.length>1?'':' hidden'}><legend class="sr">Colour for ${esc(p.name)}</legend>
+          ${p.colours.map(c=>`<label title="${esc(c.name)}"><input type="radio" name="col-${esc(p.id)}" value="${esc(c.name)}"${c===first?' checked':''}><i style="background:${esc(c.hex)}"></i><span class="sr">${esc(c.name)}</span></label>`).join('')}
+          <span class="cname"></span>
+        </fieldset>
+      </div>
       <fieldset class="sizes"><legend class="sr">Size for ${esc(p.name)}</legend>
         ${p.sizes.map(s=>`<label><input type="radio" name="sz-${esc(p.id)}" value="${esc(s)}"><span>${esc(s)}</span></label>`).join('')}
       </fieldset>
@@ -500,7 +634,7 @@ function syncCard(p,colourChanged){
   add.disabled=avail<1; add.textContent=!totalStock(p)?'Sold out':!colourTotal(p,c)?'Sold out in this colour':avail<1?'All in your bag':'Add to bag';
   card.querySelectorAll('[data-step]').forEach(b=>b.disabled=avail<1||(b.dataset.step>0?+out.value>=avail:+out.value<=1));
   const n=size?stockOf(p.id,colour,size):0;
-  card.querySelector('.note').textContent=!totalStock(p)?'Sold out — check back soon':size&&n<=2?`Only ${n} left in ${size}`:'';
+  card.querySelector('.note').textContent=!totalStock(p)?'Sold out for now':size&&n<=2?`Only ${n} left in ${size}`:'';
 }
 PRODUCTS.forEach(p=>syncCard(p,true));
 $('#products').addEventListener('change',e=>{const c=e.target.closest('.card');if(c)syncCard(byId(c.dataset.id),e.target.closest('.colours'))});
@@ -550,7 +684,7 @@ $('#bag-lines').onclick=e=>{
 
 // Checkout
 const form=$('#checkout');
-$('#ship-label').textContent=nzd(SHIPPING)+' — tracked, 2–5 working days';
+$('#ship-label').textContent=nzd(SHIPPING)+', tracked, 2 to 5 working days';
 if(PAY.card){$('#pay-card-opt').hidden=false; form.querySelector('[value=card]').checked=true}
 function totals(){
   const ship=form.method.value==='delivery'?SHIPPING:0, sub=subtotal(cart);
@@ -566,7 +700,7 @@ form.addEventListener('change',totals);
 function summary(no,f,sub,ship,payLine){
   return [
     `New order ${no}`,'',
-    ...cart.map(i=>{const p=byId(i.id);return `• ${label(p,i)} × ${i.qty} — ${nzd(p.price*i.qty)}`}),
+    ...cart.map(i=>{const p=byId(i.id);return `• ${label(p,i)} × ${i.qty}: ${nzd(p.price*i.qty)}`}),
     '',`Subtotal: ${nzd(sub)}`,`Delivery: ${ship?nzd(ship):'Pickup (free)'}`,`Total: ${nzd(sub+ship)}`,`Payment: ${payLine}`,'',
     `Name: ${f.name}`,`Phone: ${f.phone}`,f.email?`Email: ${f.email}`:null,
     ship?`Deliver to: ${f.address}`:'Pickup in Auckland',f.notes?`Notes: ${f.notes}`:null
@@ -599,7 +733,7 @@ form.onsubmit=async e=>{
   const post=async path=>{
     const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body});
     const j=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(j.error||'Could not place your order — please try again.');
+    if(!r.ok)throw new Error(j.error||'Could not place your order. Please try again.');
     return j;
   };
   $('#place').disabled=true;
@@ -631,11 +765,15 @@ if(qs.has('paid')||qs.has('cancelled')){
     const s=await fetch('api/session?id='+encodeURIComponent(qs.get('paid'))).then(r=>r.ok?r.json():{}).catch(()=>({}));
     if(s.paid){
       cart=[]; save(); try{localStorage.removeItem('sl-pending')}catch{}
-      showDone({no:s.no,msg:pending?.no===s.no?pending.msg:`Order ${s.no} — paid by card`,total:pending?.total||0,paid:true});
+      showDone({no:s.no,msg:pending?.no===s.no?pending.msg:`Order ${s.no}, paid by card`,total:pending?.total||0,paid:true});
     }else{openBag('details'); totals(); $('#form-err').textContent="We couldn't confirm your payment yet. If you were charged, message us on WhatsApp with your order number."}
-  }else{openBag('details'); totals(); $('#form-err').textContent='Payment was cancelled — nothing was charged. Try again or choose bank transfer.'}
+  }else{openBag('details'); totals(); $('#form-err').textContent='Payment was cancelled and nothing was charged. Try again or choose bank transfer.'}
 }
 renderBag();
+
+// Entrances: each part of a section rises once as it comes into view (visible without script or with reduced motion)
+const rise=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rise.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('[data-rise]').forEach(el=>rise.observe(el));
 </script>
 </body>
 </html>

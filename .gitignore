@@ -7,3 +7,4 @@ node_modules/
 seed.sql
 backups/
 design-previews/
+.taste-skill/
