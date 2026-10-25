@@ -1,46 +1,66 @@
 # Srimathi Libas
 
 Website for Srimathi Libas, a shop selling Indian traditional attire for women in Auckland, New Zealand.
+The site runs on Cloudflare Workers at **https://srimathilibas.kanishkaphulli.workers.dev**.
 
-- `index.html` is the shop: promos, collections, bag, checkout. Orders are sent to the shop on WhatsApp or by email.
-- `admin.html` is the admin page for products, stock and promos.
-- `products.json` and `promos.json` hold the data. The admin page edits them.
+- `index.html` is the shop: promos, collections with sizes, bag, and checkout by card or bank transfer.
+- `admin.html` is the admin page at `/admin`, for orders, products and stock, promos and photo uploads.
+- `worker.js` is the server code: admin login, database, photos, saving orders and Stripe. `order.js` handles pricing and `validate.js` checks admin edits.
+- Data lives in Cloudflare:
+  - **D1 database** `srimathilibas`: products, promos and orders (see `schema.sql`)
+  - **R2 bucket** `srimathilibas-photos`: uploaded photos
 
-## Hosting (GitHub Pages)
+To deploy, run `npx wrangler deploy`.
 
-Go to **Settings → Pages**, set Source to **Deploy from a branch**, then pick `main` and `/ (root)`.
-The site goes live at `https://kanishkaphulli.github.io/srimathilibas/`.
+## Admin page
 
-## Using the admin page
+Open `/admin` and sign in with a name and password from the `ADMIN_USERS` secret.
 
-1. Create a **fine-grained token** at GitHub → Settings → Developer settings → Fine-grained tokens.
-   Set Repository access to **Only `srimathilibas`** and Permissions to **Contents: Read and write**.
-2. Open `https://kanishkaphulli.github.io/srimathilibas/admin.html`, paste the token, then click **Connect**.
-3. Edit stock, prices, products or promos, then click **Save & publish**. The site updates within about a minute.
+- **Orders:** every order is saved here.
+  - Card orders become **Paid** on their own.
+  - For bank transfers, click **Mark paid** when the money arrives.
+  - Marking an order paid takes its items off stock. Cancelling a paid order puts them back. Refund card payments in Stripe yourself.
+- **Products & Stock:** write sizes like `S:2, M:3, L:0`. Use **Upload** to add a photo (JPG, PNG, WebP or AVIF, up to 5 MB). Click **Save & publish** to apply your changes.
+- If stock changed while you were editing, for example because an order was paid, the save is refused so it can't undo that change. Reload the page and edit again.
 
-Without a token, anyone can open the admin page but nobody can save changes. Keep the token private.
-The page saves it only in the browser of the device you use.
+To set or change the admin users, type the full list each time. It replaces the old one.
+```bash
+npx wrangler secret put ADMIN_USERS --name srimathilibas
+```
+Enter the list as one line: `kanishka:a-long-password,priya:another-password`
 
-## Cloudflare Workers (main site)
+## Card payments (Stripe)
 
-The live shop runs at `https://srimathilibas.kanishkaphulli.workers.dev`. To deploy it, run `npx wrangler deploy`.
-`worker.js` adds three things to the static site:
+Stripe charges 2.65% + NZ$0.30 per NZ card payment, with no monthly fee. Card payment stays hidden on the shop until the key is set.
 
-- **Admin login.** `/admin` only opens for the people listed in the `ADMIN_USERS` secret, and stays locked until it's set.
-  ```bash
-  npx wrangler secret put ADMIN_USERS
-  ```
-  Enter the users like this: `kanishka:a-long-password,priya:another-password`. Change a password by running the command again.
-- **Card payments (Stripe).** Fees are 2.65% + NZ$0.30 per NZ card, with no monthly fee. Card payment stays hidden until the key is set.
-  ```bash
-  npx wrangler secret put STRIPE_SECRET_KEY
-  ```
-  Paste the **secret key** from the Stripe dashboard (Developers → API keys). Test with an `sk_test_…` key first, then switch to `sk_live_…`.
-  Paid orders show up in Stripe under Payments, with the order number, name, phone and delivery details.
-- **Fresh data.** `products.json` and `promos.json` are read from GitHub `main`, so admin saves show up without redeploying.
+1. Store your secret key (Stripe dashboard → Developers → API keys). Start with a `sk_test_…` key.
+   ```bash
+   npx wrangler secret put STRIPE_SECRET_KEY --name srimathilibas
+   ```
+2. Set up a webhook so orders are marked paid even if the customer closes the tab before coming back to the site.
+   - In Stripe, go to Developers → Webhooks → Add endpoint.
+   - Use the URL `https://srimathilibas.kanishkaphulli.workers.dev/api/stripe-webhook`.
+   - Choose the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`.
+   - Copy the signing secret (`whsec_…`) and store it:
+   ```bash
+   npx wrangler secret put STRIPE_WEBHOOK_SECRET --name srimathilibas
+   ```
 
-Bank transfer: put your account number in `BANK` near the top of the script in `index.html`. Until you do, customers are told you'll send bank details on WhatsApp.
+## Other settings
 
-Delivery fee: it's `SHIPPING` in both `index.html` and `order.js`. Keep the two values the same.
+- **Bank transfer:** put your account number in `BANK` near the top of the script in `index.html`. Until you do, customers are told you'll send bank details on WhatsApp.
+- **Delivery fee:** it's `SHIPPING` in both `index.html` and `order.js`. Keep the two values the same.
 
-Checks: run `node worker.test.mjs`.
+## Database setup (already done)
+
+`schema.sql` creates the tables. `node scripts/seed.mjs > seed.sql` turns `products.json` and `promos.json` into starting data. Load both with:
+```bash
+npx wrangler d1 execute srimathilibas --remote --file schema.sql
+npx wrangler d1 execute srimathilibas --remote --file seed.sql
+```
+The seed never overwrites rows that already exist. After it's loaded, the admin page is where products and promos live, and the two `.json` files are only a starting copy.
+
+## Checks
+
+Run `node worker.test.mjs` to check pricing, stock and validation.
+To run the whole site on your computer with a local copy of the database and photo storage, run `npx wrangler dev`. Set up the local database first with the commands above, using `--local` instead of `--remote`.

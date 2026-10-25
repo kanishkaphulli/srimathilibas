@@ -12,3 +12,7 @@ worker.js
 worker.test.mjs
 .dev.vars
 order.js
+schema.sql
+seed.sql
+scripts
+validate.js

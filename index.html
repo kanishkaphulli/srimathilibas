@@ -361,7 +361,7 @@ const SHOP_PHONE='64210747404', SHOP_EMAIL='Srimathilibasnz@gmail.com';
 const SHIPPING=12; // keep in sync with SHIPPING in order.js, which is what card payments actually charge
 // Fill in the real account before going live; while empty, customers are told details will come on WhatsApp
 const BANK={name:'Srimathi Libas',acct:''};
-// Catalogue and promos are edited in admin.html, which commits these files to GitHub
+// Catalogue and promos come from the D1 database via worker.js, edited in admin.html
 const load=f=>fetch(f,{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]);
 const [PRODUCTS,PROMOS,PAY]=await Promise.all([load('products.json'),load('promos.json'),fetch('api/payments').then(r=>r.ok?r.json():{}).catch(()=>({}))]);
 const $=s=>document.querySelector(s), byId=id=>PRODUCTS.find(p=>p.id===id);
@@ -498,7 +498,9 @@ function showDone({no,msg,total,paid}){
   $('#done-title').textContent='Thank you!';
   $('#done-text').innerHTML=paid
     ?`Your payment for order <strong>${esc(no)}</strong> went through. We'll be in touch to arrange pickup or delivery. You can also send us your order on WhatsApp below.`
-    :`Your order <strong>${esc(no)}</strong> is reserved. ${BANK.acct?'Please pay by bank transfer using the details below, then':'Please'} <strong>send us your order</strong> on WhatsApp or email so we can ${BANK.acct?'match your payment':'send you our bank details'}.`;
+    :BANK.acct
+      ?`We've received your order <strong>${esc(no)}</strong>. Please pay by bank transfer using the details below, with your order number as the reference. We'll confirm once the payment arrives.`
+      :`We've received your order <strong>${esc(no)}</strong>. Please <strong>message us on WhatsApp or email</strong> below and we'll send you our bank details.`;
   $('#bank-box').hidden=paid||!BANK.acct;
   $('#bank-name').textContent=BANK.name; $('#bank-acct').textContent=BANK.acct; $('#bank-ref').textContent=no; $('#bank-amt').textContent=nzd(total);
   $('#order-summary').textContent=msg;
@@ -514,17 +516,28 @@ form.onsubmit=async e=>{
   $('#form-err').textContent='';
   const {sub,ship}=totals(), f=Object.fromEntries(new FormData(form));
   const no='SL-'+today.slice(2).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase().padEnd(4,'0');
+  const body=JSON.stringify({no,items:cart,delivery:f.method,name:f.name,phone:f.phone,email:f.email,address:f.address,notes:f.notes});
+  const post=async path=>{
+    const r=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||'Could not place your order — please try again.');
+    return j;
+  };
+  $('#place').disabled=true;
   if(f.pay==='card'){
-    $('#place').disabled=true; $('#place').textContent='Opening secure payment…';
+    $('#place').textContent='Opening secure payment…';
     try{
-      const r=await fetch('api/checkout',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({no,items:cart,delivery:f.method,name:f.name,phone:f.phone,email:f.email,address:f.address,notes:f.notes})});
-      const j=await r.json().catch(()=>({}));
-      if(!r.ok||!j.url)throw new Error(j.error||'Card payment is unavailable right now.');
+      const j=await post('api/checkout');
+      if(!j.url)throw new Error('Card payment is unavailable right now.');
       try{localStorage.setItem('sl-pending',JSON.stringify({no,msg:summary(no,f,sub,ship,'Card (paid online)'),total:sub+ship}))}catch{}
       location.href=j.url; return;
     }catch(err){$('#form-err').textContent=err.message+' You can choose bank transfer instead.'; $('#place').disabled=false; totals(); return}
   }
+  // Bank transfer: the order is saved on the server first, so the shop has it even if the customer never messages
+  $('#place').textContent='Placing order…';
+  try{await post('api/order')}
+  catch(err){$('#form-err').textContent=err.message; $('#place').disabled=false; totals(); return}
+  $('#place').disabled=false;
   const msg=summary(no,f,sub,ship,'Bank transfer');
   cart=[]; save(); form.reset(); if(PAY.card)form.querySelector('[value=card]').checked=true;
   showDone({no,msg,total:sub+ship,paid:false});

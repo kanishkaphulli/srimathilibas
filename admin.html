@@ -36,6 +36,15 @@ th{text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em
 td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td img{width:44px;height:56px;object-fit:cover;border-radius:4px;display:block;background:var(--line)}
 .out{color:var(--bad);font-size:.8rem;font-weight:500}
+small{color:var(--muted)}
+.ph{display:flex;align-items:center;gap:8px}
+.ph button{padding:4px 10px;font-size:.8rem}
+.acts{white-space:nowrap}
+.acts button{padding:4px 10px;font-size:.8rem;margin:2px}
+.st{display:inline-block;font-size:.78rem;font-weight:500;border-radius:999px;padding:2px 10px;background:var(--bg);border:1px solid var(--line)}
+.st-paid{color:var(--ok);border-color:var(--ok)}
+.st-awaiting_payment,.st-pending_payment{color:var(--gold);border-color:var(--gold)}
+.st-cancelled{color:var(--muted);text-decoration:line-through}
 .promo{display:grid;grid-template-columns:140px 1fr 150px auto auto;gap:8px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
 .promo textarea{grid-column:2/3}
 @media (max-width:760px){.promo{grid-template-columns:1fr}.promo textarea{grid-column:auto}}
@@ -47,24 +56,33 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>Srimathi Libas · Admin</h1><a href="./" target="_blank">View shop ↗</a></div></header>
+<header><div class="wrap"><h1>Srimathi Libas · Admin</h1><a href="/" target="_blank">View shop ↗</a></div></header>
 
 <main class="wrap">
-  <section aria-labelledby="gh-title">
-    <h2 id="gh-title">Connect to GitHub</h2>
-    <p class="hint">Saving publishes your changes to the live website (it updates within about a minute). Paste a GitHub fine-grained token with <b>Contents: Read and write</b> access to the <b>srimathilibas</b> repo only. It's stored on this device only, never in the website.</p>
-    <div class="row">
-      <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" aria-label="GitHub token">
-      <button id="connect" class="primary">Connect</button>
-      <button id="forget">Forget token</button>
+  <section aria-labelledby="ord-title">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="ord-title">Orders</h2>
+      <div class="row">
+        <select id="ord-filter" aria-label="Show orders" style="width:auto">
+          <option value="open">To do (unpaid + paid)</option><option value="awaiting_payment">Awaiting bank transfer</option>
+          <option value="pending_payment">Card payment not finished</option><option value="paid">Paid — to send</option>
+          <option value="shipped">Sent / collected</option><option value="cancelled">Cancelled</option><option value="all">All</option>
+        </select>
+        <button id="ord-refresh">Refresh</button>
+      </div>
     </div>
+    <p class="hint">Card orders turn <b>Paid</b> automatically. For bank transfers, click <b>Mark paid</b> once the money arrives. Marking paid takes the items off stock; cancelling a paid order puts them back.</p>
+    <div class="table"><table>
+      <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody id="orders"></tbody>
+    </table></div>
   </section>
 
   <section aria-labelledby="inv-title">
     <div class="row" style="justify-content:space-between"><h2 id="inv-title">Products &amp; Stock</h2><button id="add-product">+ Add product</button></div>
-    <p class="hint">Write sizes and stock like <b>S:2, M:3, L:0</b> (sarees: <b>Free size:5</b>). A size at 0 is greyed out on the shop; all sizes at 0 shows "Sold out". Reduce stock after each paid order.</p>
+    <p class="hint">Write sizes and stock like <b>S:2, M:3, L:0</b> (sarees: <b>Free size:5</b>). A size at 0 is greyed out on the shop; all sizes at 0 shows "Sold out". Stock goes down by itself when an order is paid.</p>
     <div class="table"><table>
-      <thead><tr><th></th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Sizes : stock</th><th>Image URL</th><th></th></tr></thead>
+      <thead><tr><th>Photo</th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Sizes : stock</th><th></th></tr></thead>
       <tbody id="products"></tbody>
     </table></div>
   </section>
@@ -76,71 +94,43 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
   </section>
 </main>
 
+<input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
 <div class="bar"><div class="wrap"><span id="status" role="status">Loading…</span><button id="save" class="primary">Save &amp; publish</button></div></div>
 
 <script type="module">
-const REPO='kanishkaphulli/srimathilibas', BRANCH='main', API=`https://api.github.com/repos/${REPO}/contents/`;
 const CATS=['Lehengas','Ethnic Suits','Sarees','Co-ord Sets'];
+const LABEL={pending_payment:'Card not finished',awaiting_payment:'Awaiting transfer',paid:'Paid',shipped:'Sent',cancelled:'Cancelled'};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
+const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
 const status=(t,cls='')=>{$('#status').textContent=t;$('#status').className=cls};
-let token='', dirty=false, data={products:[],promos:[]};
-try{token=localStorage.getItem('sl-gh-token')||''}catch{}
-$('#token').value=token;
+let dirty=false, data={products:[],promos:[],version:0}, orders=[];
 
-// GitHub contents API (UTF-8 safe base64)
-const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
-async function gh(path,opts={}){
-  const r=await fetch(API+path+(opts.method?'':`?ref=${BRANCH}`),{...opts,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json'}});
-  if(!r.ok)throw new Error(r.status===401?'Token rejected — check it and try again.':r.status===404?'Repo or file not found, or token has no access to it.':`GitHub error ${r.status}`);
-  return r.json();
+async function api(path,opts={}){
+  // location.origin, not a relative URL: Chrome refuses relative fetches when the page URL holds a login (user:pass@)
+  const r=await fetch(location.origin+'/admin/api/'+path,{...opts,headers:opts.body instanceof Blob?{'content-type':opts.body.type}:{'content-type':'application/json'}});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||`Error ${r.status}`);
+  return j;
 }
 async function load(){
-  try{
-    for(const k of ['products','promos']){
-      // With a token, read the latest commit (not the website's cached copy) so saves never overwrite newer edits
-      data[k]=token?JSON.parse(unb64((await gh(k+'.json')).content)):await fetch(k+'.json',{cache:'no-cache'}).then(r=>r.json());
-    }
-    status(token?'Connected — loaded latest from GitHub.':'Preview only — connect GitHub to save changes.',token?'ok':'');
-  }catch(e){status(e.message,'bad')}
-  dirty=false; render();
+  try{data=await api('data'); dirty=false; render(); status('Loaded — up to date.','ok')}
+  catch(e){status('Could not load: '+e.message,'bad')}
 }
 
-// Validation at the save boundary
-function validate({products,promos}){
-  const ids=new Set();
-  for(const [i,p] of products.entries()){
-    const n=`Product ${i+1}`;
-    if(!p.name?.trim())return `${n}: name is required`;
-    if(!(p.price>=0))return `${n}: price must be 0 or more`;
-    if(!p.sizes||typeof p.sizes!=='object'||!Object.keys(p.sizes).length)return `${n}: add at least one size, e.g. S:2, M:3`;
-    if(Object.values(p.sizes).some(q=>!Number.isInteger(q)||q<0))return `${n}: sizes must look like S:2, M:3 (whole numbers, 0 or more)`;
-    if(!/^https:\/\//.test(p.img||''))return `${n}: image URL must start with https://`;
-    if(ids.has(p.id))return `${n}: duplicate id`; ids.add(p.id);
-  }
-  for(const [i,p] of promos.entries()){
-    if(!p.title?.trim())return `Promo ${i+1}: title is required`;
-    if(p.until&&!/^\d{4}-\d{2}-\d{2}$/.test(p.until))return `Promo ${i+1}: end date is invalid`;
-  }
-  return '';
-}
-// "S:2, M:3, Free size:1" <-> {S:2,M:3,"Free size":1}; bad parts become NaN so validate() rejects them
-const parseSizes=s=>Object.fromEntries(s.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.+?)\s*:\s*(\d+)$/);return m?[m[1],+m[2]]:[x,NaN]}));
+// "S:2, M:3, Free size:1" <-> {S:2,M:3,"Free size":1}; bad parts become null so the server rejects them
+const parseSizes=s=>Object.fromEntries(s.split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.+?)\s*:\s*(\d+)$/);return m?[m[1],+m[2]]:[x,null]}));
 const fmtSizes=o=>Object.entries(o||{}).map(([k,v])=>`${k}:${v}`).join(', ');
-const total=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+b,0);
-console.assert(validate({products:[{id:'a',name:'x',price:1,sizes:parseSizes('S:0, Free size:2'),img:'https://x'}],promos:[]})===''&&
-  validate({products:[{id:'a',name:'x',price:1,sizes:parseSizes('S:two'),img:'https://x'}],promos:[]}).includes('sizes')&&
-  fmtSizes(parseSizes('S:1,M : 2'))==='S:1, M:2','validate/sizes');
+const total=p=>Object.values(p.sizes||{}).reduce((a,b)=>a+(b||0),0);
+console.assert(fmtSizes(parseSizes('S:1,M : 2'))==='S:1, M:2'&&parseSizes('S:two').S===null,'sizes');
 
 function render(){
   $('#products').innerHTML=data.products.map((p,i)=>`<tr>
-    <td><img src="${esc(p.img)}" alt=""></td>
+    <td><div class="ph"><img src="${esc(p.img)}" alt=""><button data-up="${i}">${p.img?'Change':'Upload'}</button></div></td>
     <td><input data-p="${i}" data-k="name" value="${esc(p.name)}" required aria-label="Name"></td>
     <td><select data-p="${i}" data-k="cat" aria-label="Category">${[...new Set([...CATS,p.cat])].map(c=>`<option${c===p.cat?' selected':''}>${esc(c)}</option>`).join('')}</select></td>
     <td><input data-p="${i}" data-k="price" type="number" min="0" step="1" value="${p.price}" style="width:96px" aria-label="Price"></td>
     <td><input data-p="${i}" data-k="sizes" value="${esc(fmtSizes(p.sizes))}" placeholder="S:2, M:3, L:1" aria-label="Sizes and stock" style="min-width:170px"><span class="out" data-out="${i}">${total(p)>0?'':'Sold out'}</span></td>
-    <td><input data-p="${i}" data-k="img" type="url" value="${esc(p.img)}" aria-label="Image URL"></td>
     <td><button class="danger" data-del-p="${i}">Delete</button></td></tr>`).join('');
   $('#promos').innerHTML=data.promos.map((p,i)=>`<div class="promo">
     <input data-r="${i}" data-k="tag" value="${esc(p.tag)}" placeholder="Label e.g. Sale" aria-label="Label">
@@ -154,36 +144,70 @@ function changed(){dirty=true;status('Unsaved changes')}
 
 document.addEventListener('input',e=>{
   const t=e.target,{p,r,k}=t.dataset; if(!k)return;
-  const list=p!==undefined?data.products[p]:r!==undefined?data.promos[r]:null; if(!list)return;
-  list[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?NaN:+t.value):k==='sizes'?parseSizes(t.value):t.value;
-  if(k==='img')t.closest('tr').querySelector('img').src=t.value;
-  if(k==='sizes')$(`[data-out="${p}"]`).textContent=total(list)>0?'':'Sold out';
+  const item=p!==undefined?data.products[p]:r!==undefined?data.promos[r]:null; if(!item)return;
+  item[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?null:+t.value):k==='sizes'?parseSizes(t.value):t.value;
+  if(k==='sizes')$(`[data-out="${p}"]`).textContent=total(item)>0?'':'Sold out';
   changed();
 });
+
+// Photo upload: pick a file, it goes to Cloudflare storage, and the product's photo is set to it
+let upFor=null;
 document.addEventListener('click',e=>{
   const d=e.target.dataset;
-  if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name}"?`)){data.products.splice(d.delP,1);render();changed()}
+  if(d.up!==undefined){upFor=+d.up; $('#file').value=''; $('#file').click()}
+  else if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name||'this product'}"?`)){data.products.splice(d.delP,1);render();changed()}
   else if(d.delR!==undefined&&confirm('Delete this promo?')){data.promos.splice(d.delR,1);render();changed()}
+  else if(d.set)setStatus(d.no,d.set);
 });
+$('#file').onchange=async()=>{
+  const f=$('#file').files[0]; if(!f||upFor===null)return;
+  status('Uploading photo…');
+  try{const {url}=await api('photo',{method:'POST',body:f}); data.products[upFor].img=url; render(); changed(); status('Photo uploaded — click Save & publish to show it on the shop.','ok')}
+  catch(e){status('Photo not uploaded: '+e.message,'bad')}
+};
+
 $('#add-product').onclick=()=>{data.products.push({id:'p'+Date.now().toString(36),cat:CATS[0],name:'',price:0,sizes:{S:1,M:1,L:1},img:''});render();changed()};
 $('#add-promo').onclick=()=>{data.promos.unshift({id:'r'+Date.now().toString(36),tag:'New',title:'',text:'',until:'',active:true});render();changed()};
-$('#connect').onclick=()=>{token=$('#token').value.trim();try{localStorage.setItem('sl-gh-token',token)}catch{}load()};
-$('#forget').onclick=()=>{token='';$('#token').value='';try{localStorage.removeItem('sl-gh-token')}catch{}load()};
 $('#save').onclick=async()=>{
-  if(!token)return status('Connect GitHub first to save.','bad');
-  const err=validate(data); if(err)return status(err,'bad');
   $('#save').disabled=true; status('Saving…');
-  try{
-    for(const k of ['products','promos']){
-      const {sha}=await gh(k+'.json');
-      await gh(k+'.json',{method:'PUT',body:JSON.stringify({message:`Update ${k} from admin`,branch:BRANCH,sha,content:b64(JSON.stringify(data[k],null,2)+'\n')})});
-    }
-    dirty=false; status('Saved — the website will update within about a minute.','ok');
-  }catch(e){status('Not saved: '+e.message,'bad')}
+  try{const {version}=await api('catalogue',{method:'PUT',body:JSON.stringify(data)}); data.version=version; dirty=false; status('Saved — the shop shows your changes now.','ok')}
+  catch(e){status('Not saved: '+e.message,'bad')}
   $('#save').disabled=false;
 };
+
+// Orders
+async function loadOrders(){
+  try{orders=await api('orders'); renderOrders()}
+  catch(e){$('#orders').innerHTML=`<tr><td colspan="7" class="out">Could not load orders: ${esc(e.message)}</td></tr>`}
+}
+function renderOrders(){
+  const f=$('#ord-filter').value;
+  const list=orders.filter(o=>f==='all'||o.status===f||(f==='open'&&['awaiting_payment','paid'].includes(o.status)));
+  $('#orders').innerHTML=list.map(o=>{
+    const acts=[];
+    if(['awaiting_payment','pending_payment'].includes(o.status))acts.push(['paid','Mark paid']);
+    if(o.status==='paid')acts.push(['shipped','Mark sent']);
+    if(o.status!=='cancelled')acts.push(['cancelled','Cancel']);
+    return `<tr>
+      <td><strong>${esc(o.no)}</strong><br><small>${o.pay_method==='card'?'Card':'Bank transfer'}</small></td>
+      <td><small>${new Date(o.created_at).toLocaleString('en-NZ',{dateStyle:'medium',timeStyle:'short'})}</small></td>
+      <td>${esc(o.name)}<br><small>${esc(o.phone)}${o.email?' · '+esc(o.email):''}<br>${o.delivery==='delivery'?'Deliver: '+esc(o.address):'Pickup'}${o.notes?'<br>Notes: '+esc(o.notes):''}</small></td>
+      <td><small>${o.items.map(i=>`${esc(i.name)} × ${i.qty}`).join('<br>')}</small></td>
+      <td>${nzd(o.total)}</td>
+      <td><span class="st st-${esc(o.status)}">${LABEL[o.status]||esc(o.status)}</span></td>
+      <td class="acts">${acts.map(([s,l])=>`<button data-no="${esc(o.no)}" data-set="${s}"${s==='cancelled'?' class="danger"':''}>${l}</button>`).join('')}</td></tr>`}).join('')
+    ||'<tr><td colspan="7" class="hint">No orders here.</td></tr>';
+}
+async function setStatus(no,s){
+  if(s==='cancelled'&&!confirm(`Cancel order ${no}? If it was paid, its items go back into stock (refund card payments in Stripe).`))return;
+  try{await api('orders/'+no,{method:'POST',body:JSON.stringify({status:s})}); await Promise.all([loadOrders(), dirty?null:load()])}
+  catch(e){status(e.message,'bad')}
+}
+$('#ord-filter').onchange=renderOrders;
+$('#ord-refresh').onclick=loadOrders;
+
 addEventListener('beforeunload',e=>{if(dirty)e.preventDefault()});
-load();
+load(); loadOrders();
 </script>
 </body>
 </html>

@@ -7,6 +7,14 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/admin*", "/products.json", "/promos.json"]
-  }
+    "run_worker_first": ["/api/*", "/admin*", "/products.json", "/promos.json", "/photos/*"]
+  },
+  // Products, promos and orders (tables in schema.sql)
+  "d1_databases": [
+    { "binding": "DB", "database_name": "srimathilibas", "database_id": "dc721616-3de5-4e6e-9e44-77db2004fef7" }
+  ],
+  // Uploaded product photos, served at /photos/<key>
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "srimathilibas-photos" }
+  ]
 }

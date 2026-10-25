@@ -1,14 +1,18 @@
 // Cloudflare Worker: serves the static site, plus
-//  - /admin*            locked to the users in the ADMIN_USERS secret ("name:password,name2:password2")
-//  - /products.json etc served fresh from GitHub, so admin saves show without redeploying
-//  - /api/checkout      creates a Stripe Checkout session, priced on the server from products.json
-//  - /api/session       tells the shop whether a returning Stripe session was actually paid
-// Secrets (set with `npx wrangler secret put NAME`): ADMIN_USERS, STRIPE_SECRET_KEY
+//  - /admin and /admin/api/*  locked to the users in the ADMIN_USERS secret ("name:password,name2:password2")
+//  - /products.json, /promos.json  read from the D1 database (DB)
+//  - /photos/<key>             product photos from R2 (PHOTOS)
+//  - /api/order                saves a bank-transfer order
+//  - /api/checkout             saves a card order and creates a Stripe Checkout session (priced on the server)
+//  - /api/session              tells the shop whether a returning Stripe session was paid
+//  - /api/stripe-webhook       Stripe tells us a payment went through, even if the customer closed the tab
+// Secrets (set with `npx wrangler secret put NAME`): ADMIN_USERS, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 
-import { lineItems } from './order.js';
+import { lineItems, sizePath } from './order.js';
+import { validateProducts, validatePromos } from './validate.js';
 
-const DATA = 'https://raw.githubusercontent.com/kanishkaphulli/srimathilibas/main/';
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
+const STATUSES = ['pending_payment', 'awaiting_payment', 'paid', 'shipped', 'cancelled'];
 
 export default {
   async fetch(req, env) {
@@ -17,16 +21,27 @@ export default {
 
     if (path === '/admin' || path.startsWith('/admin.') || path.startsWith('/admin/')) {
       const denied = await checkAdmin(req, env);
-      return denied || env.ASSETS.fetch(req);
+      if (denied) return denied;
+      if (path.startsWith('/admin/api/')) {
+        try { return await adminApi(req, env, path.slice('/admin/api/'.length)); }
+        catch (e) { return json({ error: e.status ? e.message : 'Something went wrong — please try again' }, e.status || 500); }
+      }
+      return env.ASSETS.fetch(req);
     }
-    if (path === '/products.json' || path === '/promos.json') return fresh(path, env, req);
+    if (path === '/products.json') return json(await getProducts(env));
+    if (path === '/promos.json') return json(await getPromos(env));
+    if (path.startsWith('/photos/')) return photo(env, path.slice('/photos/'.length));
     if (path === '/api/payments') return json({ card: !!env.STRIPE_SECRET_KEY });
-    if (path === '/api/checkout' && req.method === 'POST') return checkout(req, env, url);
+    if (path === '/api/order' && req.method === 'POST') return placeOrder(req, env, 'bank');
+    if (path === '/api/checkout' && req.method === 'POST') return placeOrder(req, env, 'card', url);
     if (path === '/api/session') return session(url, env);
+    if (path === '/api/stripe-webhook' && req.method === 'POST') return webhook(req, env);
     if (path.startsWith('/api/')) return json({ error: 'Not found' }, 404);
     return env.ASSETS.fetch(req);
   },
 };
+
+class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 
 // ---- Admin login (HTTP Basic over HTTPS) ----
 async function checkAdmin(req, env) {
@@ -41,37 +56,71 @@ async function checkAdmin(req, env) {
   }
   return ask('Wrong name or password');
 }
-// Constant-time compare of SHA-256 digests, so timing doesn't leak how much of a password matched
+// Constant-time compare of SHA-256 digests, so timing doesn't leak how much of a secret matched
 async function same(a, b) {
   const enc = (s) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   const [x, y] = await Promise.all([enc(a), enc(b)]);
   return crypto.subtle.timingSafeEqual(x, y);
 }
 
-// ---- Catalogue straight from GitHub (falls back to the deployed copy) ----
-async function fresh(path, env, req) {
-  if (env.LOCAL_DATA) return env.ASSETS.fetch(req); // local `wrangler dev` uses the files on disk
-  try {
-    const r = await fetch(DATA + path.slice(1), { cf: { cacheTtl: 30, cacheEverything: true } });
-    if (r.ok) return new Response(r.body, { headers: { 'content-type': 'application/json', 'cache-control': 'no-cache' } });
-  } catch {}
-  return env.ASSETS.fetch(req);
+// ---- Catalogue ----
+async function getProducts(env) {
+  const { results } = await env.DB.prepare('SELECT id,cat,name,price,img,sizes FROM products ORDER BY sort, rowid').all();
+  return results.map((p) => ({ ...p, sizes: JSON.parse(p.sizes) }));
 }
-async function products(env, url) {
-  return (await fresh('/products.json', env, new Request(new URL('/products.json', url)))).json();
+async function getPromos(env) {
+  const { results } = await env.DB.prepare('SELECT id,tag,title,text,until,active FROM promos ORDER BY sort, rowid').all();
+  return results.map((p) => ({ ...p, active: !!p.active }));
+}
+const version = async (env) => (await env.DB.prepare("SELECT value FROM meta WHERE key='version'").first('value')) || 0;
+
+// ---- Photos (R2) ----
+async function photo(env, key) {
+  if (!/^[\w.-]{1,80}$/.test(key)) return new Response('Not found', { status: 404 });
+  const obj = await env.PHOTOS.get(key);
+  if (!obj) return new Response('Not found', { status: 404 });
+  return new Response(obj.body, { headers: { 'content-type': obj.httpMetadata?.contentType || 'application/octet-stream', 'cache-control': 'public, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' } });
+}
+const IMAGE_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' };
+async function uploadPhoto(req, env) {
+  const type = (req.headers.get('content-type') || '').split(';')[0];
+  if (!IMAGE_TYPES[type]) throw new HttpError(400, 'Please upload a JPG, PNG, WebP or AVIF image');
+  const body = await req.arrayBuffer();
+  if (!body.byteLength) throw new HttpError(400, 'The file is empty');
+  if (body.byteLength > 5 * 1024 * 1024) throw new HttpError(400, 'Photo is larger than 5 MB — please use a smaller one');
+  const key = `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}.${IMAGE_TYPES[type]}`;
+  await env.PHOTOS.put(key, body, { httpMetadata: { contentType: type } });
+  return { url: `/photos/${key}` };
 }
 
-// ---- Stripe ----
-async function checkout(req, env, url) {
-  if (!env.STRIPE_SECRET_KEY) return json({ error: 'Card payment is not set up yet.' }, 503);
+// ---- Orders ----
+async function placeOrder(req, env, payMethod, url) {
+  if (payMethod === 'card' && !env.STRIPE_SECRET_KEY) return json({ error: 'Card payment is not set up yet.' }, 503);
   let order;
   try { order = await req.json(); } catch { return json({ error: 'Bad request' }, 400); }
   if (!String(order.name || '').trim() || !/^[\d\s+()-]{7,30}$/.test(order.phone || '')) return json({ error: 'Name and phone are required' }, 400);
 
   let items;
-  try { items = lineItems(await products(env, url), order); } catch (e) { return json({ error: e.message }, 400); }
-
+  try { items = lineItems(await getProducts(env), order); } catch (e) { return json({ error: e.message }, 400); }
+  const goods = items.filter((i) => !i.shipping);
+  const subtotal = goods.reduce((t, i) => t + i.amount * i.qty, 0) / 100;
+  const shipping = (items.find((i) => i.shipping)?.amount || 0) / 100;
   const clip = (s, n) => String(s || '').slice(0, n);
+  const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email || '') ? clip(order.email, 120) : '';
+  const delivery = order.delivery === 'delivery' ? 'delivery' : 'pickup';
+
+  try {
+    await env.DB.prepare(`INSERT INTO orders (no,created_at,status,pay_method,name,phone,email,delivery,address,notes,items,subtotal,shipping,total)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
+      order.no, new Date().toISOString(), payMethod === 'card' ? 'pending_payment' : 'awaiting_payment', payMethod,
+      clip(order.name, 80), clip(order.phone, 30), email, delivery, delivery === 'delivery' ? clip(order.address, 300) : '', clip(order.notes, 300),
+      JSON.stringify(goods.map(({ id, size, qty, name, amount }) => ({ id, size, qty, name, price: amount / 100 }))), subtotal, shipping, subtotal + shipping,
+    ).run();
+  } catch {
+    return json({ error: 'Could not save your order — please try again.' }, 409);
+  }
+  if (payMethod === 'bank') return json({ no: order.no, total: subtotal + shipping });
+
   const f = new URLSearchParams({
     mode: 'payment',
     success_url: `${url.origin}/?paid={CHECKOUT_SESSION_ID}`,
@@ -79,31 +128,84 @@ async function checkout(req, env, url) {
     client_reference_id: order.no,
     'payment_intent_data[description]': `Order ${order.no}`,
     'metadata[order]': order.no,
-    'metadata[name]': clip(order.name, 80),
-    'metadata[phone]': clip(order.phone, 30),
-    'metadata[delivery]': order.delivery === 'delivery' ? clip(order.address, 300) : 'Pickup in Auckland',
-    'metadata[notes]': clip(order.notes, 300),
   });
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email || '')) f.set('customer_email', clip(order.email, 120));
+  if (email) f.set('customer_email', email);
   items.forEach((it, i) => {
     f.set(`line_items[${i}][price_data][currency]`, 'nzd');
     f.set(`line_items[${i}][price_data][unit_amount]`, String(it.amount));
     f.set(`line_items[${i}][price_data][product_data][name]`, it.name);
     f.set(`line_items[${i}][quantity]`, String(it.qty));
   });
-
   const r = await stripe(env, 'checkout/sessions', { method: 'POST', body: f });
-  if (!r.ok) return json({ error: 'Card payment is unavailable right now.' }, 502);
-  return json({ url: (await r.json()).url });
+  if (!r.ok) {
+    await env.DB.prepare("UPDATE orders SET status='cancelled' WHERE no=? AND status='pending_payment'").bind(order.no).run();
+    return json({ error: 'Card payment is unavailable right now.' }, 502);
+  }
+  const s = await r.json();
+  await env.DB.prepare('UPDATE orders SET stripe_session=? WHERE no=?').bind(s.id, order.no).run();
+  return json({ url: s.url });
 }
 
+// Marks an order paid and takes its items off stock — all in one transaction, and only once per order
+async function markPaid(env, no) {
+  const order = await env.DB.prepare('SELECT items FROM orders WHERE no=?').bind(no).first();
+  if (!order) return false;
+  const pending = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='paid' AND stock_applied=0)";
+  await env.DB.batch([
+    env.DB.prepare("UPDATE orders SET status='paid' WHERE no=? AND status IN ('pending_payment','awaiting_payment')").bind(no),
+    ...stockChanges(env, JSON.parse(order.items), -1, pending, no),
+    env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + pending).bind(no),
+    env.DB.prepare("UPDATE orders SET stock_applied=1 WHERE no=? AND status='paid'").bind(no),
+  ]);
+  return true;
+}
+// Cancelling puts stock back if it had been taken
+async function cancelOrder(env, no) {
+  const order = await env.DB.prepare('SELECT items FROM orders WHERE no=?').bind(no).first();
+  if (!order) throw new HttpError(404, 'Order not found');
+  const taken = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='cancelled' AND stock_applied=1)";
+  await env.DB.batch([
+    env.DB.prepare("UPDATE orders SET status='cancelled' WHERE no=?").bind(no),
+    ...stockChanges(env, JSON.parse(order.items), +1, taken, no),
+    env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + taken).bind(no),
+    env.DB.prepare("UPDATE orders SET stock_applied=0 WHERE no=? AND status='cancelled'").bind(no),
+  ]);
+}
+// One UPDATE per item; `guard` (using ?1 = order no) makes them no-ops unless this order's stock change is due
+function stockChanges(env, items, sign, guard, no) {
+  return items.map((i) => env.DB.prepare(
+    `UPDATE products SET sizes = json_set(sizes, ?2, MAX(0, COALESCE(json_extract(sizes, ?2), 0) + ?3)) WHERE id = ?4 AND ${guard}`,
+  ).bind(no, sizePath(i.size), sign * i.qty, i.id));
+}
+
+// ---- Stripe ----
 async function session(url, env) {
   const id = url.searchParams.get('id') || '';
   if (!env.STRIPE_SECRET_KEY || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) return json({ paid: false });
   const r = await stripe(env, `checkout/sessions/${id}`);
   if (!r.ok) return json({ paid: false });
   const s = await r.json();
-  return json({ paid: s.payment_status === 'paid', no: s.client_reference_id });
+  const paid = s.payment_status === 'paid';
+  if (paid && s.client_reference_id) await markPaid(env, s.client_reference_id);
+  return json({ paid, no: s.client_reference_id });
+}
+
+async function webhook(req, env) {
+  if (!env.STRIPE_WEBHOOK_SECRET) return json({ error: 'Webhook not set up' }, 503);
+  const raw = await req.text();
+  const sig = Object.fromEntries((req.headers.get('stripe-signature') || '').split(',').map((kv) => kv.split('=')));
+  if (!sig.t || !sig.v1 || Math.abs(Date.now() / 1000 - Number(sig.t)) > 300) return json({ error: 'Bad signature' }, 400);
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.STRIPE_WEBHOOK_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${sig.t}.${raw}`)));
+  const expected = [...mac].map((b) => b.toString(16).padStart(2, '0')).join('');
+  if (!(await same(expected, sig.v1))) return json({ error: 'Bad signature' }, 400);
+
+  const event = JSON.parse(raw);
+  const s = event.data?.object;
+  if (['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type) && s?.payment_status === 'paid' && s.client_reference_id) {
+    await markPaid(env, s.client_reference_id);
+  }
+  return json({ received: true });
 }
 
 function stripe(env, path, init = {}) {
@@ -111,4 +213,55 @@ function stripe(env, path, init = {}) {
     ...init,
     headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
   });
+}
+
+// ---- Admin API (already signed in) ----
+async function adminApi(req, env, route) {
+  const body = async () => { try { return await req.json(); } catch { throw new HttpError(400, 'Bad request'); } };
+
+  if (route === 'data' && req.method === 'GET') {
+    const [products, promos, v] = await Promise.all([getProducts(env), getPromos(env), version(env)]);
+    return json({ products, promos, version: v });
+  }
+  if (route === 'catalogue' && req.method === 'PUT') {
+    const { products, promos, version: v } = await body();
+    const err = validateProducts(products) || validatePromos(promos);
+    if (err) throw new HttpError(400, err);
+    // Refuse if anything changed since this admin loaded (e.g. a paid order took stock)
+    if (v !== (await version(env))) throw new HttpError(409, 'Stock or products changed since you opened this page. Reload to get the latest, then make your edits again.');
+    // One transaction: claim the version with a fresh random stamp, and every later statement only runs if the
+    // claim won. A paid order bumping the version in between makes the claim (and so the whole save) a no-op.
+    const nv = 2 + Math.floor(Math.random() * 2 ** 50);
+    const won = "(SELECT value FROM meta WHERE key='version') = ?";
+    const res = await env.DB.batch([
+      env.DB.prepare("UPDATE meta SET value = ? WHERE key='version' AND value = ?").bind(nv, v),
+      env.DB.prepare(`DELETE FROM products WHERE ${won}`).bind(nv),
+      env.DB.prepare(`DELETE FROM promos WHERE ${won}`).bind(nv),
+      ...products.map((p, i) => env.DB.prepare(`INSERT INTO products (id,cat,name,price,img,sizes,sort) SELECT ?,?,?,?,?,?,? WHERE ${won}`)
+        .bind(p.id, p.cat.trim(), p.name.trim(), p.price, p.img, JSON.stringify(p.sizes), i, nv)),
+      ...promos.map((p, i) => env.DB.prepare(`INSERT INTO promos (id,tag,title,text,until,active,sort) SELECT ?,?,?,?,?,?,? WHERE ${won}`)
+        .bind(p.id, p.tag.trim(), p.title.trim(), p.text.trim(), p.until, p.active ? 1 : 0, i, nv)),
+    ]);
+    if (!res[0].meta.changes) throw new HttpError(409, 'Stock or products changed while you were saving. Reload to get the latest, then make your edits again.');
+    return json({ version: nv });
+  }
+  if (route === 'orders' && req.method === 'GET') {
+    const { results } = await env.DB.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 200').all();
+    return json(results.map((o) => ({ ...o, items: JSON.parse(o.items) })));
+  }
+  const m = route.match(/^orders\/(SL-\d{6}-[A-Z0-9]{4})$/);
+  if (m && req.method === 'POST') {
+    const { status } = await body();
+    if (!STATUSES.includes(status)) throw new HttpError(400, 'Unknown status');
+    const no = m[1];
+    if (status === 'paid') { if (!(await markPaid(env, no))) throw new HttpError(404, 'Order not found'); }
+    else if (status === 'cancelled') await cancelOrder(env, no);
+    else if (status === 'shipped') {
+      const r = await env.DB.prepare("UPDATE orders SET status='shipped' WHERE no=? AND status IN ('paid','shipped')").bind(no).run();
+      if (!r.meta.changes) throw new HttpError(400, 'Only paid orders can be marked shipped');
+    } else throw new HttpError(400, 'That status is set automatically');
+    return json(await env.DB.prepare('SELECT status FROM orders WHERE no=?').bind(no).first());
+  }
+  if (route === 'photo' && req.method === 'POST') return json(await uploadPhoto(req, env));
+  throw new HttpError(404, 'Not found');
 }
