@@ -7,132 +7,191 @@
 <meta name="description" content="Srimathi Libas – Indian traditional attire for women in Auckland, New Zealand. Ethnic suits, lehengas, sarees and co-ord sets.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+/* Luxe editorial: ivory paper, deep maroon, antique gold; Cormorant Garamond display + Jost text */
 :root{
-  --bg:#fbf6ef; --surface:#fff; --ink:#2b1a1a; --muted:#6e5a55;
-  --maroon:#7a1f2b; --maroon-deep:#561520; --gold:#b8892f; --line:#e8dccb;
+  --bg:#f7f1e8; --surface:#fffdf9; --ink:#2a1a17; --muted:#6b5850;
+  --maroon:#6b1626; --maroon-deep:#4a0f1a; --gold:#b08a3e; --gold-text:#7f5f22; --line:#e6dacb;
+  --on-dark:#fbefe0; --gold-light:#e6c587;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1a1112; --surface:#241819; --ink:#f3e9df; --muted:#c2aea6;
-    --maroon:#e8788a; --maroon-deep:#3a0f17; --gold:#d9ab52; --line:#3a2a2a;
+    --bg:#16100f; --surface:#211715; --ink:#f3e9df; --muted:#c2aea6;
+    --maroon:#e8a0ad; --maroon-deep:#3a0f17; --gold:#d9b26a; --gold-text:#d9b26a; --line:#3a2a28;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1a1112; --surface:#241819; --ink:#f3e9df; --muted:#c2aea6;
-  --maroon:#e8788a; --maroon-deep:#3a0f17; --gold:#d9ab52; --line:#3a2a2a;
+  --bg:#16100f; --surface:#211715; --ink:#f3e9df; --muted:#c2aea6;
+  --maroon:#e8a0ad; --maroon-deep:#3a0f17; --gold:#d9b26a; --gold-text:#d9b26a; --line:#3a2a28;
 }
 *{box-sizing:border-box;margin:0}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font:400 17px/1.65 "Jost",system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.7 "Jost",system-ui,sans-serif}
 a{color:inherit}
-h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.1}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;line-height:1.1}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+@media (max-width:640px){.wrap{padding:0 16px}}
+.eyebrow{font-size:.72rem;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-text)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
-header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
-.logo{font-family:"Cormorant Garamond",serif;font-size:1.6rem;font-weight:600;color:var(--maroon);text-decoration:none;letter-spacing:.02em}
-nav{display:flex;gap:24px;font-size:.95rem}
-nav a{text-decoration:none;color:var(--muted)}
-nav a:hover{color:var(--maroon)}
-nav{align-items:center}
-@media (max-width:640px){nav a{display:none}}
+/* Announcement + header */
+.announce{background:var(--maroon-deep);color:var(--on-dark);text-align:center;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px}
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:80px;gap:16px}
+header nav{display:flex;align-items:center;gap:26px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+header nav:last-child{justify-content:flex-end}
+header nav a{text-decoration:none;color:var(--ink)}
+header nav a:hover{color:var(--maroon)}
+.logo{text-align:center;text-decoration:none;line-height:1}
+.logo b{display:block;font:600 1.9rem/1 "Cormorant Garamond",serif;letter-spacing:.05em;color:var(--maroon)}
+.logo small{font-size:.7rem;letter-spacing:.38em;text-transform:uppercase;color:var(--gold-text)}
+.bag-btn{font:inherit;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;background:none;border:0;color:var(--ink);cursor:pointer;padding:8px 0}
+.bag-btn b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--maroon);color:var(--surface);font-size:.75rem;letter-spacing:0;margin-left:6px}
+@media (max-width:860px){
+  header .wrap{grid-template-columns:1fr auto;height:68px}
+  header nav:first-child,header nav:last-child a{display:none}
+  .logo{text-align:left}.logo b{font-size:1.6rem}
+}
 
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--maroon-deep),#8e2a37 60%,#5b1823);color:#fbefe0}
-.hero::after{content:"";position:absolute;inset:0;opacity:.14;
-  background-image:radial-gradient(circle at 20px 20px,#f2c46d 2px,transparent 3px),radial-gradient(circle at 0 0,transparent 18px,#f2c46d 19px,transparent 20px);
-  background-size:40px 40px}
-.hero .wrap{position:relative;z-index:1;padding-top:72px;padding-bottom:80px;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}
-.hero-img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:200px 200px 16px 16px;border:3px solid #f2c46d66}
-@media (max-width:800px){.hero .wrap{grid-template-columns:1fr}.hero-img{max-width:360px;justify-self:center}}
-.hero h1{font-size:clamp(2.6rem,7vw,4.8rem);margin:12px 0 18px;max-width:14ch}
-.hero h1 em{color:#f2c46d;font-style:italic;font-weight:500}
-.hero p{max-width:52ch;font-size:1.1rem;color:#f0dccb}
-.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-.btn{display:inline-block;padding:13px 26px;border-radius:999px;text-decoration:none;font-weight:500;font-size:.95rem}
-.btn-gold{background:#f2c46d;color:#3a0f17}
-.btn-gold:hover{background:#f7d58f}
-.btn-ghost{border:1px solid #f2c46d88;color:#fbefe0}
+/* Hero: full-bleed photo with copy over a dark fade */
+.hero{position:relative;height:min(86vh,760px);min-height:520px;overflow:hidden;padding:0;color:var(--on-dark)}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#1a0a0cd9 0%,#1a0a0c73 45%,transparent 75%)}
+.hero .copy{position:absolute;z-index:1;left:max(24px,calc((100vw - 1240px)/2 + 24px));top:50%;transform:translateY(-50%);max-width:540px}
+
+.hero h1{font-size:clamp(3rem,7vw,5.6rem);line-height:1;margin:18px 0 20px}
+.hero h1 em{color:var(--gold-light)}
+.hero p{font-size:1.08rem;color:#ead8c4;max-width:42ch}
+@media (max-width:860px){
+  .hero::after{background:linear-gradient(0deg,#1a0a0cee 15%,#1a0a0c55 60%,transparent 85%)}
+  .hero .copy{top:auto;bottom:36px;transform:none;padding-right:16px;left:16px}
+}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-block;padding:15px 32px;text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;transition:background .25s,color .25s}
+.btn-gold{background:var(--gold-light);color:#3a0f17;border:1px solid var(--gold-light)}
+.btn-gold:hover{background:transparent;color:var(--on-dark)}
+.btn-ghost{border:1px solid #e6c58799;color:var(--on-dark)}
 .btn-ghost:hover{background:#ffffff14}
 
-section{padding:88px 0}
+/* Section heads */
+section{padding:96px 0}
+@media (max-width:640px){section{padding:64px 0}}
 .head{text-align:center;margin-bottom:48px}
-.head h2{font-size:clamp(2rem,4.5vw,2.9rem);color:var(--maroon)}
+.head h2{font-size:clamp(2.2rem,4vw,3.2rem);margin-top:12px}
 .head p{color:var(--muted);max-width:56ch;margin:10px auto 0}
-.divider{width:64px;height:2px;background:var(--gold);margin:16px auto 0}
+.orn{display:flex;align-items:center;justify-content:center;gap:14px;color:var(--gold);margin-top:16px;font-size:.8rem}
+.orn::before,.orn::after{content:"";width:60px;height:1px;background:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:44px 22px}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s}
-.card:hover{transform:translateY(-4px)}
+/* Category tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.tile{position:relative;display:block;aspect-ratio:3/4.3;overflow:hidden;text-decoration:none;background:var(--line)}
+.tile img{width:100%;height:100%;object-fit:cover;transition:transform .8s}
+.tile:hover img{transform:scale(1.05)}
+.tile span{position:absolute;inset:auto 0 0;padding:28px 20px 22px;background:linear-gradient(transparent,#1a0a0cdd);color:var(--on-dark);font:500 1.65rem "Cormorant Garamond",serif}
+.tile small{display:block;font:500 .72rem "Jost";letter-spacing:.24em;text-transform:uppercase;color:var(--gold-light);margin-top:6px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr);gap:10px}.tile span{font-size:1.3rem;padding:20px 12px 14px}}
+
+/* Promos */
+.promos{padding-bottom:0}
+.promo{background:var(--surface);border:1px solid var(--line);padding:28px 26px;position:relative}
+.promo::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none}
+.promo .tag{display:inline-block;font-size:.72rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-text);margin-bottom:10px}
+.promo h3{font-size:1.65rem}
+.promo p{color:var(--muted);font-size:.95rem;margin-top:8px}
+.promo small{display:block;margin-top:12px;color:var(--maroon);font-weight:500;font-size:.85rem}
+
+/* Filters */
+.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 26px;margin:-18px 0 40px;border-bottom:1px solid var(--line)}
+.filters button{font:inherit;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 2px;margin-bottom:-1px;cursor:pointer}
+.filters button[aria-pressed="true"]{color:var(--maroon);border-bottom-color:var(--maroon)}
+.filters .sg-link{color:var(--gold-text)}
+
+/* Product cards: photo-led, no box */
+.card{background:none}
 .card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--line)}
-.card-body{padding:16px 18px 20px}
-.card h3{font-size:1.4rem}
-.card .cat{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.12em}
-.price{font-weight:500;color:var(--maroon);margin:4px 0 12px}
-.buy{display:flex;gap:8px}
-select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.gal{position:relative}
-.gal img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--line)}
-.gnav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:#fffc;color:#2b1a1a;font-size:1.4rem;line-height:1;cursor:pointer;box-shadow:0 1px 4px #0003}
-.gnav.prev{left:8px}.gnav.next{right:8px}
-.gcount{position:absolute;right:8px;bottom:8px;background:#0008;color:#fff;font-size:.75rem;border-radius:999px;padding:1px 8px}
+.gal{position:relative;overflow:hidden}
+.gal img{transition:transform .8s}
+.card:hover .gal img{transform:scale(1.03)}
+.gnav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:0;background:#fffdf9e6;color:#2a1a17;font-size:1.4rem;line-height:1;cursor:pointer;box-shadow:0 1px 6px #0003}
+.gnav.prev{left:10px}.gnav.next{right:10px}
+.gcount{position:absolute;right:10px;bottom:10px;background:#1a0a0caa;color:#fff;font-size:.72rem;padding:1px 8px}
 .gcount:empty{display:none}
-.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.card-body{padding:16px 0 0}
+.card .cat{color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase}
+.card h3{font-size:1.45rem;margin-top:4px}
+.price{font-weight:500;color:var(--maroon);margin:4px 0 12px}
+.colours{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px;border:0;padding:0}
 .colours label{cursor:pointer;display:inline-flex}
 .colours input{position:absolute;opacity:0;width:1px}
-.colours i{width:24px;height:24px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
-.colours input:checked+i{box-shadow:0 0 0 2px var(--ink)}
+.colours i{width:22px;height:22px;border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--line)}
+.colours input:checked+i{box-shadow:0 0 0 1.5px var(--ink)}
 .colours input:focus-visible+i{outline:2px solid var(--gold);outline-offset:3px}
 .colours .cname{font-size:.85rem;color:var(--muted)}
-.sizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.sizes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px;border:0;padding:0}
 .sizes label{cursor:pointer}
 .sizes input{position:absolute;opacity:0;width:1px}
-.sizes span{display:inline-block;min-width:40px;text-align:center;padding:5px 10px;border:1px solid var(--line);border-radius:6px;font-size:.85rem}
+.sizes span{display:inline-block;min-width:42px;text-align:center;padding:6px 10px;border:1px solid var(--line);font-size:.82rem;background:var(--surface)}
 .sizes input:checked+span{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 .sizes input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
 .sizes input:disabled+span{opacity:.4;text-decoration:line-through;cursor:not-allowed}
-.note{min-height:1.3em;font-size:.82rem;color:var(--gold);margin-bottom:8px}
-.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;flex:0 0 auto}
-.stepper button{width:34px;height:38px;border:0;background:none;color:var(--ink);font-size:1.1rem;cursor:pointer}
+.note{min-height:1.4em;font-size:.82rem;color:var(--gold-text);margin-bottom:8px}
+.buy{display:flex;gap:8px}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);background:var(--surface);flex:0 0 auto}
+.stepper button{width:34px;height:42px;border:0;background:none;color:var(--ink);font-size:1.1rem;cursor:pointer}
 .stepper button:disabled{opacity:.35;cursor:not-allowed}
 .stepper output{min-width:22px;text-align:center;font-weight:500}
-.filters .sg-link{border-style:dashed}
-dialog.center{margin:auto;height:auto;max-height:90dvh;width:min(480px,calc(100vw - 32px));border-radius:14px}
-.hint{color:var(--muted);font-size:.88rem;margin:4px 0 14px}
-.sg{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:12px}
-.sg th,.sg td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
-.bank{border:1px solid var(--gold);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:.92rem}
-.bank span{color:var(--muted)}
-.btn-solid{flex:1;background:var(--maroon);color:var(--surface);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
-.btn-solid:hover{filter:brightness(1.1)}
-.btn-solid:disabled{opacity:.5;cursor:not-allowed}
-.low{color:var(--gold);font-size:.85rem;font-weight:400}
-.promos{padding-bottom:0}
-.promo{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:22px 24px}
-.promo .tag{display:inline-block;background:var(--maroon);color:var(--surface);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 12px;margin-bottom:10px}
-.promo h3{font-size:1.5rem}
-.promo p{color:var(--muted);font-size:.95rem;margin-top:6px}
-.promo small{display:block;margin-top:10px;color:var(--gold);font-weight:500}
-.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:-24px 0 36px}
-.filters button{font:inherit;font-size:.9rem;background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:7px 16px;cursor:pointer}
-.filters button[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--surface)}
+.btn-solid{flex:1;background:var(--maroon);color:var(--surface);border:1px solid var(--maroon);padding:12px 16px;font:inherit;font-size:.75rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
+.btn-solid:hover{background:transparent;color:var(--maroon)}
+.btn-solid:disabled{opacity:.45;cursor:not-allowed;background:var(--maroon);color:var(--surface)}
+.low{color:var(--gold-text);font-size:.85rem;font-weight:400}
+select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:10px 12px;width:100%}
 
-.bag-btn{font:inherit;font-size:.95rem;background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
-.bag-btn b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--maroon);color:var(--surface);font-size:.75rem;margin-left:6px}
+/* Quote band */
+.quote{background:var(--maroon-deep);color:var(--on-dark);text-align:center;padding:88px 24px}
+.quote p{font:italic 500 clamp(1.6rem,3vw,2.4rem)/1.35 "Cormorant Garamond",serif;max-width:30ch;margin:0 auto}
+.quote small{display:block;margin-top:20px;letter-spacing:.3em;text-transform:uppercase;font-size:.72rem;color:var(--gold-light)}
 
+/* About / promise */
+.promise{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;text-align:center}
+.promise h3{font-size:1.6rem;color:var(--maroon)}
+.promise p{color:var(--muted);font-size:.95rem;margin-top:8px;max-width:32ch;margin-inline:auto}
+@media (max-width:760px){.promise{grid-template-columns:1fr;gap:28px}}
+
+/* How to order */
+.steps{counter-reset:s;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.step{border-top:1px solid var(--gold);padding-top:22px}
+.step::before{counter-increment:s;content:"0" counter(s);display:block;font:500 2.4rem/1 "Cormorant Garamond",serif;color:var(--gold);margin-bottom:12px}
+.step h3{font-size:1.5rem}
+.step p{color:var(--muted);font-size:.95rem;margin-top:6px}
+
+/* Contact */
+.contact{background:var(--maroon-deep);color:var(--on-dark);text-align:center}
+.contact .eyebrow{color:var(--gold-light)}
+.contact h2{font-size:clamp(2.2rem,4vw,3.2rem);margin-top:12px}
+.contact p{color:#ead8c4;max-width:50ch;margin:12px auto 0}
+.contact .btns{justify-content:center}
+.details{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 36px;margin-top:36px;font-size:.95rem;color:#ead8c4}
+.details a{text-decoration:none;border-bottom:1px solid #e6c58766}
+footer{padding:32px 0;text-align:center;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+
+/* Bag, checkout and size guide panels */
 dialog{border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(440px,100vw);background:var(--surface);color:var(--ink)}
-dialog::backdrop{background:#0008}
+dialog::backdrop{background:#1a0a0c99}
+dialog.center{margin:auto;height:auto;max-height:90dvh;width:min(480px,calc(100vw - 32px))}
 .panel{display:flex;flex-direction:column;height:100%}
-.panel-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
-.panel-head h2{font-size:1.7rem}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:1.8rem}
 .x{background:none;border:0;font-size:1.6rem;line-height:1;color:var(--muted);cursor:pointer;padding:4px 8px}
-.panel-body{flex:1;overflow:auto;padding:20px}
-.panel-foot{padding:16px 20px 20px;border-top:1px solid var(--line);display:grid;gap:10px}
-.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
-.line img{width:64px;height:80px;object-fit:cover;border-radius:6px}
+.panel-body{flex:1;overflow:auto;padding:20px 22px}
+.panel-foot{padding:16px 22px 22px;border-top:1px solid var(--line);display:grid;gap:10px}
+.panel-foot .btn-solid{padding:15px}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.line img{width:64px;height:84px;object-fit:cover}
+.line strong{font:500 1.15rem "Cormorant Garamond",serif}
 .line small{color:var(--muted);display:block}
 .qty{display:flex;align-items:center;gap:6px;margin-top:4px}
 .qty button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
@@ -144,133 +203,107 @@ dialog::backdrop{background:#0008}
 .field>span{font-weight:500}
 fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:8px}
 legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
-.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.9rem;cursor:pointer}
-.opt input{width:auto;margin-top:4px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);padding:12px 14px;font-size:.9rem;cursor:pointer}
+.opt:has(input:checked){border-color:var(--maroon)}
+.opt input{width:auto;margin-top:4px;accent-color:var(--maroon)}
 .opt small{color:var(--muted);display:block}
-.err{color:#c0392b;font-size:.85rem;min-height:1.2em}
-.done-mark{width:64px;height:64px;border-radius:50%;background:var(--gold);color:#fff;display:grid;place-items:center;font-size:2rem;margin:8px auto 16px}
-.done h3{text-align:center;font-size:1.8rem}
+.err{color:#b3261e;font-size:.85rem;min-height:1.2em}
+.done-mark{width:64px;height:64px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-size:1.8rem;margin:8px auto 16px}
+.done h3{text-align:center;font-size:2rem}
 .done p{color:var(--muted);text-align:center;margin:8px 0 18px}
-.summary{background:var(--bg);border-radius:10px;padding:14px 16px;font-size:.9rem;white-space:pre-wrap;font-family:inherit}
-.btn-wa{display:block;text-align:center;background:#1f8f4e;color:#fff;border-radius:999px;padding:12px;text-decoration:none;font-weight:500}
-
-.about{background:var(--surface);border-block:1px solid var(--line)}
-.about .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
-@media (max-width:800px){.about .wrap{grid-template-columns:1fr;gap:32px}}
-.about h2{font-size:clamp(2rem,4.5vw,2.9rem);color:var(--maroon);margin-bottom:16px}
-.about p+p{margin-top:14px}
-.about p{color:var(--muted)}
-.points{display:grid;gap:14px;list-style:none;padding:0}
-.points li{border-left:3px solid var(--gold);padding:10px 0 10px 18px}
-.points strong{display:block;font-family:"Cormorant Garamond",serif;font-size:1.35rem;color:var(--ink)}
-.points span{color:var(--muted);font-size:.95rem}
-
-.steps{counter-reset:s}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 24px}
-.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;
-  background:var(--maroon);color:#fff;font-family:"Cormorant Garamond",serif;font-size:1.3rem;margin-bottom:14px}
-.step h3{font-size:1.45rem}
-.step p{color:var(--muted);font-size:.95rem;margin-top:6px}
-
-.contact{background:linear-gradient(135deg,var(--maroon-deep),#7a1f2b);color:#fbefe0;text-align:center}
-.contact h2{font-size:clamp(2rem,4.5vw,2.9rem)}
-.contact p{color:#f0dccb;max-width:50ch;margin:12px auto 0}
-.contact .btns{justify-content:center}
-.details{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 32px;margin-top:36px;font-size:.95rem;color:#f0dccb}
-.details a{text-decoration:none;border-bottom:1px solid #f2c46d66}
-
-footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
-:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.summary{background:var(--bg);padding:14px 16px;font-size:.9rem;white-space:pre-wrap;font-family:inherit}
+.bank{border:1px solid var(--gold);padding:12px 16px;margin-bottom:14px;display:grid;gap:6px;font-size:.92rem}
+.bank span{color:var(--muted)}
+.btn-wa{display:block;text-align:center;background:#1f7a45;color:#fff;padding:14px;text-decoration:none;font-size:.78rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+.hint{color:var(--muted);font-size:.88rem;margin:4px 0 14px}
+.sg{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:12px}
+.sg th,.sg td{padding:8px;border-bottom:1px solid var(--line);text-align:center}
 </style>
 </head>
 <body>
 
+<div class="announce">Free pickup in Auckland · NZ-wide delivery · Card or bank transfer</div>
 <header>
   <div class="wrap">
-    <a class="logo" href="#top">Srimathi Libas</a>
-    <nav aria-label="Main">
-      <a href="#collections">Collections</a>
-      <a href="#about">About</a>
+    <nav aria-label="Collections">
+      <a href="#collections">Shop</a>
+      <a href="#about">Our story</a>
       <a href="#order">How to order</a>
+    </nav>
+    <a class="logo" href="#top"><b>Srimathi Libas</b><small>Auckland</small></a>
+    <nav aria-label="Account">
       <a href="#contact">Contact</a>
-      <button class="bag-btn cta-link" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button>
+      <button class="bag-btn" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button>
     </nav>
   </div>
 </header>
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
-      <div>
-      <h1 id="hero-title">Elegance woven in <em>tradition</em></h1>
-      <p>Indian traditional attire from Auckland — ethnic suits, lehengas, sarees and co-ord sets for every celebration, handpicked from India and brought to women across New Zealand.</p>
+    <img src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=1800&q=80" alt="Bride in a jewelled maroon and teal lehenga in a stone archway">
+    <div class="copy">
+      <h1 id="hero-title">Draped in <em>heritage</em></h1>
+      <p>Handpicked lehengas, sarees, suits and co-ord sets from India, brought to the women of Aotearoa for every celebration.</p>
       <div class="btns">
         <a class="btn btn-gold" href="#collections">Shop the collection</a>
         <a class="btn btn-ghost" href="https://wa.me/64210747404" target="_blank" rel="noopener">Chat on WhatsApp</a>
       </div>
-      </div>
-      <img class="hero-img" src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=800&q=80" alt="Woman in elegant Indian traditional attire standing in a doorway">
+    </div>
+  </section>
+
+  <section id="categories" aria-labelledby="cat-title">
+    <div class="wrap">
+      <div class="head"><div class="eyebrow">Collections</div><h2 id="cat-title">Find your occasion</h2><div class="orn" aria-hidden="true">✦</div></div>
+      <div class="tiles" id="cats"></div>
     </div>
   </section>
 
   <section id="promos" class="promos" aria-labelledby="promo-title" hidden>
     <div class="wrap">
-      <div class="head">
-        <h2 id="promo-title">What's New</h2>
-        <p>Latest offers, arrivals and updates from Srimathi Libas.</p>
-        <div class="divider"></div>
-      </div>
+      <div class="head"><div class="eyebrow">What's new</div><h2 id="promo-title">Offers &amp; updates</h2><div class="orn" aria-hidden="true">✦</div></div>
       <div class="grid" id="promo-list"></div>
     </div>
   </section>
 
   <section id="collections" aria-labelledby="col-title">
     <div class="wrap">
-      <div class="head">
-        <h2 id="col-title">Our Collections</h2>
-        <p>From everyday ethnic wear to festive and bridal looks — find the outfit that feels like you.</p>
-        <div class="divider"></div>
-      </div>
+      <div class="head"><div class="eyebrow">The collection</div><h2 id="col-title">Shop all pieces</h2><div class="orn" aria-hidden="true">✦</div></div>
       <div class="filters" role="group" aria-label="Filter by category"></div>
       <div class="grid" id="products"></div>
     </div>
   </section>
 
-  <section id="about" class="about" aria-labelledby="about-title">
+  <div class="quote"><p>“Every piece is chosen as if for a family wedding — for its fabric, its finish, and how it makes you feel.”</p><small>— Srimathi Libas</small></div>
+
+  <section id="about" aria-labelledby="about-title">
     <div class="wrap">
-      <div>
-        <h2 id="about-title">A little piece of India, here in Auckland</h2>
-        <p>Srimathi Libas was born from a simple wish — to make beautiful Indian traditional wear easy to find in New Zealand, without the guesswork of ordering from overseas.</p>
-        <p>Every piece is chosen for its fabric, finish and fit, so you can dress with confidence for weddings, festivals, poojas and every celebration in between.</p>
+      <div class="head"><div class="eyebrow">Our story</div><h2 id="about-title">A little piece of India, here in Auckland</h2>
+        <p>Srimathi Libas makes beautiful Indian traditional wear easy to find in New Zealand, without the guesswork of ordering from overseas.</p><div class="orn" aria-hidden="true">✦</div></div>
+      <div class="promise">
+        <div><h3>Handpicked in India</h3><p>Small batches, chosen for fabric, finish and fit.</p></div>
+        <div><h3>Styled in Auckland</h3><p>Friendly one-on-one help choosing your outfit.</p></div>
+        <div><h3>For every occasion</h3><p>Weddings, festivals, poojas and every celebration in between.</p></div>
       </div>
-      <ul class="points">
-        <li><strong>Handpicked designs</strong><span>Curated pieces you won't find on every rack.</span></li>
-        <li><strong>Local &amp; personal</strong><span>Auckland-based, with friendly one-on-one help choosing your outfit.</span></li>
-        <li><strong>For every occasion</strong><span>Casual, festive and bridal — all in one place.</span></li>
-      </ul>
     </div>
   </section>
 
-  <section id="order" aria-labelledby="order-title">
+  <section id="order" aria-labelledby="order-title" style="padding-top:0">
     <div class="wrap">
-      <div class="head">
-        <h2 id="order-title">How to Order</h2>
-        <p>Shopping with us is simple and personal.</p>
-        <div class="divider"></div>
-      </div>
+      <div class="head"><div class="eyebrow">Simple &amp; personal</div><h2 id="order-title">How to order</h2><div class="orn" aria-hidden="true">✦</div></div>
       <div class="grid steps">
-        <div class="step"><h3>Choose</h3><p>Pick your size (see the size guide) and quantity, then add it to your bag.</p></div>
+        <div class="step"><h3>Choose</h3><p>Pick your colour, size (see the size guide) and quantity, then add it to your bag.</p></div>
         <div class="step"><h3>Checkout</h3><p>Enter your details and choose Auckland pickup or NZ-wide delivery.</p></div>
         <div class="step"><h3>Pay</h3><p>Pay securely by card, Apple Pay or Google Pay — or by bank transfer using your order number.</p></div>
-        <div class="step"><h3>Pickup or delivery</h3><p>Collect in Auckland or we courier it to your door once payment is in.</p></div>
+        <div class="step"><h3>Receive</h3><p>Collect in Auckland, or we courier it to your door once payment is in.</p></div>
       </div>
     </div>
   </section>
 
   <section id="contact" class="contact" aria-labelledby="contact-title">
     <div class="wrap">
+      <div class="eyebrow">Get in touch</div>
       <h2 id="contact-title">Find your perfect outfit</h2>
-      <p>Have a celebration coming up? Get in touch — we'd love to help you look and feel your best.</p>
+      <p>Have a celebration coming up? We'd love to help you look and feel your best.</p>
       <div class="btns">
         <a class="btn btn-gold" href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp us</a>
         <a class="btn btn-ghost" href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Visit our Facebook</a>
@@ -413,6 +446,12 @@ $('.filters').onclick=e=>{
   const c=e.target.textContent;
   document.querySelectorAll('#products .card').forEach(el=>el.hidden=c!=='All'&&el.dataset.cat!==c);
 };
+// Category tiles: first photo in each category; tapping one filters the collection below
+const firstOf={}; PRODUCTS.forEach(p=>firstOf[p.cat]??=p);
+$('#categories').hidden=Object.keys(firstOf).length<2;
+$('#cats').innerHTML=Object.entries(firstOf).map(([c,p])=>`<a class="tile" href="#collections" data-cat="${esc(c)}"><img src="${esc(p.colours[0].photos[0])}" alt="" loading="lazy"><span>${esc(c)}<small>Shop now →</small></span></a>`).join('');
+$('#cats').onclick=e=>{const t=e.target.closest('[data-cat]'); if(t)[...document.querySelectorAll('.filters button')].find(b=>b.textContent===t.dataset.cat)?.click()};
+
 $('#products').innerHTML=PRODUCTS.map(p=>{
   const first=p.colours.find(c=>colourTotal(p,c)>0)||p.colours[0];
   return `
