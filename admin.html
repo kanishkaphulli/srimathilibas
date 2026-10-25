@@ -61,6 +61,8 @@ table.stock th:first-child,table.stock td:first-child{text-align:left}
 .cname{display:flex;gap:6px;align-items:center}
 .cname input[type=color]{width:34px;height:34px;padding:2px;flex:0 0 auto}
 .cname input:not([type=color]){min-width:120px}
+.cname input.hextext{min-width:0;width:96px;font-family:ui-monospace,monospace;font-size:.85rem}
+.cname input.badhex{border-color:var(--bad)}
 input.qty{width:64px;text-align:center}
 .tot{font-weight:500}
 .photos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
@@ -195,7 +197,7 @@ function render(){
       <div class="table"><table class="stock">
         <thead><tr><th>Colour</th>${p.sizes.map(s=>`<th>${esc(s)}</th>`).join('')}<th>Total</th><th></th></tr></thead>
         <tbody>${p.colours.map((c,ci)=>`<tr>
-          <td><div class="cname"><input type="color" data-c="${ci}" data-f="hex" value="${esc(c.hex)}" aria-label="Swatch for ${esc(c.name)}"><input data-c="${ci}" data-f="cname" value="${esc(c.name)}" aria-label="Colour name" required></div></td>
+          <td><div class="cname"><input type="color" data-c="${ci}" data-f="hex" value="${esc(c.hex)}" aria-label="Swatch for ${esc(c.name)}"><input class="hextext" data-c="${ci}" data-f="hextext" value="${esc(c.hex)}" placeholder="#hex or name" aria-label="Swatch colour code for ${esc(c.name)}" title="Type a colour code like #1f3a93 or a colour name like maroon"><input data-c="${ci}" data-f="cname" value="${esc(c.name)}" placeholder="Colour name" aria-label="Colour name" required></div></td>
           ${p.sizes.map(s=>`<td><input class="qty" type="number" min="0" step="1" data-c="${ci}" data-size="${esc(s)}" value="${c.stock[s]??0}" aria-label="${esc(c.name)} ${esc(s)} stock"></td>`).join('')}
           <td class="tot">${p.sizes.reduce((t,s)=>t+(c.stock[s]||0),0)}</td>
           <td>${p.colours.length>1?`<button class="danger" data-act="rm-colour" data-c="${ci}">Remove</button>`:''}</td></tr>`).join('')}
@@ -224,13 +226,30 @@ function render(){
 }
 const prodOf=el=>{const d=el.closest('details.prod');return d?data.products[d.dataset.i]:null};
 
+// Typed colour -> #rrggbb: accepts #hex, rgb(), or a CSS colour name ("maroon", "Royal Blue" -> royalblue). '' if not a colour.
+const ctx2d=document.createElement('canvas').getContext('2d');
+function toHex(v){
+  for(const s of [v.trim(), v.trim().replace(/\s+/g,'')]){
+    if(!s||!CSS.supports('color',s))continue;
+    ctx2d.fillStyle='#000'; ctx2d.fillStyle=s;
+    if(/^#[0-9a-f]{6}$/i.test(ctx2d.fillStyle))return ctx2d.fillStyle;
+  }
+  return '';
+}
+console.assert(toHex('Royal Blue')==='#4169e1'&&toHex('#ABC')==='#aabbcc'&&toHex('mustardish')==='','toHex');
+function setSwatch(t,c,h,fromName){
+  c.hex=h; const box=t.closest('.cname');
+  box.querySelector('[type=color]').value=h;
+  if(fromName)box.querySelector('[data-f=hextext]').value=h;
+}
 $('#products').addEventListener('toggle',e=>{const p=prodOf(e.target); if(p)e.target.open?open.add(p.id):open.delete(p.id)},true);
 $('#products').addEventListener('input',e=>{
   const t=e.target, p=prodOf(t); if(!p)return;
   const c=t.dataset.c!==undefined?p.colours[t.dataset.c]:null;
   if(t.dataset.size!==undefined){c.stock[t.dataset.size]=t.value===''?null:+t.value; t.closest('tr').querySelector('.tot').textContent=p.sizes.reduce((a,s)=>a+(c.stock[s]||0),0)}
-  else if(t.dataset.f==='hex')c.hex=t.value;
-  else if(t.dataset.f==='cname')c.name=t.value;
+  else if(t.dataset.f==='hex'){c.hex=t.value; t.closest('.cname').querySelector('[data-f=hextext]').value=t.value}
+  else if(t.dataset.f==='hextext'){const h=toHex(t.value); t.classList.toggle('badhex',!h&&t.value.trim()!==''); if(h)setSwatch(t,c,h,false)}
+  else if(t.dataset.f==='cname'){c.name=t.value; const h=toHex(t.value); if(h)setSwatch(t,c,h,true)}
   else if(t.dataset.f==='price')p.price=t.value===''?null:+t.value;
   else if(t.dataset.f)p[t.dataset.f]=t.value;
   changed();
