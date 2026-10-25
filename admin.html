@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Srimathi Libas Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf6ef;--surface:#fff;--ink:#2b1a1a;--muted:#6e5a55;--maroon:#7a1f2b;--gold:#b8892f;--line:#e8dccb;--ok:#1f7a45;--bad:#b3261e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1a1112;--surface:#241819;--ink:#f3e9df;--muted:#c2aea6;--maroon:#e8788a;--gold:#d9ab52;--line:#3a2a2a;--ok:#5fcf8c;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#1a1112;--surface:#241819;--ink:#f3e9df;--muted:#c2aea6;--maroon:#e8788a;--gold:#d9ab52;--line:#3a2a2a;--ok:#5fcf8c;--bad:#ff8a80}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 "Jost",system-ui,sans-serif;padding-bottom:96px}
+h1,h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header{border-bottom:1px solid var(--line);background:var(--surface)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;height:60px}
+header h1{font-size:1.5rem;color:var(--maroon)}
+header a{color:var(--muted);font-size:.9rem}
+section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:20px}
+section h2{font-size:1.6rem;margin-bottom:4px}
+.hint{color:var(--muted);font-size:.85rem;margin-bottom:14px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+input[type=checkbox]{width:auto}
+input:invalid{border-color:var(--bad)}
+button{font:inherit;cursor:pointer;border-radius:999px;padding:7px 16px;border:1px solid var(--line);background:none;color:var(--ink)}
+.primary{background:var(--maroon);border-color:var(--maroon);color:var(--surface);font-weight:500}
+.danger{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>input{flex:1;min-width:220px}
+.table{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td img{width:44px;height:56px;object-fit:cover;border-radius:4px;display:block;background:var(--line)}
+.stock{display:flex;align-items:center;gap:4px}
+.stock input{width:64px;text-align:center}
+.stock button{padding:4px 10px}
+.out{color:var(--bad);font-size:.8rem;font-weight:500}
+.promo{display:grid;grid-template-columns:140px 1fr 150px auto auto;gap:8px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
+.promo textarea{grid-column:2/3}
+@media (max-width:760px){.promo{grid-template-columns:1fr}.promo textarea{grid-column:auto}}
+label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:nowrap;padding-top:6px}
+.bar{position:fixed;inset:auto 0 0 0;background:var(--surface);border-top:1px solid var(--line);padding:14px 0}
+.bar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#status{font-size:.9rem;color:var(--muted)}
+#status.ok{color:var(--ok)}#status.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Srimathi Libas · Admin</h1><a href="./" target="_blank">View shop ↗</a></div></header>
+
+<main class="wrap">
+  <section aria-labelledby="gh-title">
+    <h2 id="gh-title">Connect to GitHub</h2>
+    <p class="hint">Saving publishes your changes to the live website (it updates within about a minute). Paste a GitHub fine-grained token with <b>Contents: Read and write</b> access to the <b>srimathilibas</b> repo only. It's stored on this device only, never in the website.</p>
+    <div class="row">
+      <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" aria-label="GitHub token">
+      <button id="connect" class="primary">Connect</button>
+      <button id="forget">Forget token</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="inv-title">
+    <div class="row" style="justify-content:space-between"><h2 id="inv-title">Products &amp; Stock</h2><button id="add-product">+ Add product</button></div>
+    <p class="hint">Stock at 0 shows "Sold out" on the shop. 3 or fewer shows "Only N left". Reduce stock after you confirm each order.</p>
+    <div class="table"><table>
+      <thead><tr><th></th><th>Name</th><th>Category</th><th>Price (NZD)</th><th>Stock</th><th>Image URL</th><th></th></tr></thead>
+      <tbody id="products"></tbody>
+    </table></div>
+  </section>
+
+  <section aria-labelledby="promo-title">
+    <div class="row" style="justify-content:space-between"><h2 id="promo-title">Promos &amp; Updates</h2><button id="add-promo">+ Add promo</button></div>
+    <p class="hint">Shown in "What's New" on the shop while Active is ticked and the end date hasn't passed. Leave the end date empty to keep it running.</p>
+    <div id="promos"></div>
+  </section>
+</main>
+
+<div class="bar"><div class="wrap"><span id="status" role="status">Loading…</span><button id="save" class="primary">Save &amp; publish</button></div></div>
+
+<script type="module">
+const REPO='kanishkaphulli/srimathilibas', BRANCH='main', API=`https://api.github.com/repos/${REPO}/contents/`;
+const CATS=['Lehengas','Ethnic Suits','Sarees','Co-ord Sets'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
+const status=(t,cls='')=>{$('#status').textContent=t;$('#status').className=cls};
+let token='', dirty=false, data={products:[],promos:[]};
+try{token=localStorage.getItem('sl-gh-token')||''}catch{}
+$('#token').value=token;
+
+// GitHub contents API (UTF-8 safe base64)
+const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
+async function gh(path,opts={}){
+  const r=await fetch(API+path+(opts.method?'':`?ref=${BRANCH}`),{...opts,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json'}});
+  if(!r.ok)throw new Error(r.status===401?'Token rejected — check it and try again.':r.status===404?'Repo or file not found, or token has no access to it.':`GitHub error ${r.status}`);
+  return r.json();
+}
+async function load(){
+  try{
+    for(const k of ['products','promos']){
+      // With a token, read the latest commit (not the website's cached copy) so saves never overwrite newer edits
+      data[k]=token?JSON.parse(unb64((await gh(k+'.json')).content)):await fetch(k+'.json',{cache:'no-cache'}).then(r=>r.json());
+    }
+    status(token?'Connected — loaded latest from GitHub.':'Preview only — connect GitHub to save changes.',token?'ok':'');
+  }catch(e){status(e.message,'bad')}
+  dirty=false; render();
+}
+
+// Validation at the save boundary
+function validate({products,promos}){
+  const ids=new Set();
+  for(const [i,p] of products.entries()){
+    const n=`Product ${i+1}`;
+    if(!p.name?.trim())return `${n}: name is required`;
+    if(!(p.price>=0))return `${n}: price must be 0 or more`;
+    if(!Number.isInteger(p.stock)||p.stock<0)return `${n}: stock must be a whole number, 0 or more`;
+    if(!/^https:\/\//.test(p.img||''))return `${n}: image URL must start with https://`;
+    if(ids.has(p.id))return `${n}: duplicate id`; ids.add(p.id);
+  }
+  for(const [i,p] of promos.entries()){
+    if(!p.title?.trim())return `Promo ${i+1}: title is required`;
+    if(p.until&&!/^\d{4}-\d{2}-\d{2}$/.test(p.until))return `Promo ${i+1}: end date is invalid`;
+  }
+  return '';
+}
+console.assert(validate({products:[{id:'a',name:'x',price:1,stock:0,img:'https://x'}],promos:[]})===''&&
+  validate({products:[{id:'a',name:'x',price:1,stock:-1,img:'https://x'}],promos:[]}).includes('stock'),'validate');
+
+function render(){
+  $('#products').innerHTML=data.products.map((p,i)=>`<tr>
+    <td><img src="${esc(p.img)}" alt=""></td>
+    <td><input data-p="${i}" data-k="name" value="${esc(p.name)}" required aria-label="Name"></td>
+    <td><select data-p="${i}" data-k="cat" aria-label="Category">${[...new Set([...CATS,p.cat])].map(c=>`<option${c===p.cat?' selected':''}>${esc(c)}</option>`).join('')}</select></td>
+    <td><input data-p="${i}" data-k="price" type="number" min="0" step="1" value="${p.price}" style="width:96px" aria-label="Price"></td>
+    <td><div class="stock"><button data-step="${i}" data-d="-1" aria-label="Decrease stock">−</button><input data-p="${i}" data-k="stock" type="number" min="0" step="1" value="${p.stock}" aria-label="Stock"><button data-step="${i}" data-d="1" aria-label="Increase stock">+</button></div>${p.stock>0?'':'<span class="out">Sold out</span>'}</td>
+    <td><input data-p="${i}" data-k="img" type="url" value="${esc(p.img)}" aria-label="Image URL"></td>
+    <td><button class="danger" data-del-p="${i}">Delete</button></td></tr>`).join('');
+  $('#promos').innerHTML=data.promos.map((p,i)=>`<div class="promo">
+    <input data-r="${i}" data-k="tag" value="${esc(p.tag)}" placeholder="Label e.g. Sale" aria-label="Label">
+    <input data-r="${i}" data-k="title" value="${esc(p.title)}" placeholder="Headline" required aria-label="Headline">
+    <input data-r="${i}" data-k="until" type="date" value="${esc(p.until)}" aria-label="End date">
+    <label class="chk"><input type="checkbox" data-r="${i}" data-k="active"${p.active?' checked':''}> Active</label>
+    <button class="danger" data-del-r="${i}">Delete</button>
+    <textarea data-r="${i}" data-k="text" rows="2" placeholder="Details shown to customers" aria-label="Details">${esc(p.text)}</textarea></div>`).join('')||'<p class="hint">No promos yet.</p>';
+}
+function changed(){dirty=true;status('Unsaved changes')}
+
+document.addEventListener('input',e=>{
+  const t=e.target,{p,r,k}=t.dataset; if(!k)return;
+  const list=p!==undefined?data.products[p]:r!==undefined?data.promos[r]:null; if(!list)return;
+  list[k]=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?NaN:+t.value):t.value;
+  if(k==='img')t.closest('tr').querySelector('img').src=t.value;
+  changed();
+});
+document.addEventListener('click',e=>{
+  const d=e.target.dataset;
+  if(d.step!==undefined){const p=data.products[d.step];p.stock=Math.max(0,(p.stock||0)+ +d.d);render();changed()}
+  else if(d.delP!==undefined&&confirm(`Delete "${data.products[d.delP].name}"?`)){data.products.splice(d.delP,1);render();changed()}
+  else if(d.delR!==undefined&&confirm('Delete this promo?')){data.promos.splice(d.delR,1);render();changed()}
+});
+$('#add-product').onclick=()=>{data.products.push({id:'p'+Date.now().toString(36),cat:CATS[0],name:'',price:0,stock:1,img:''});render();changed()};
+$('#add-promo').onclick=()=>{data.promos.unshift({id:'r'+Date.now().toString(36),tag:'New',title:'',text:'',until:'',active:true});render();changed()};
+$('#connect').onclick=()=>{token=$('#token').value.trim();try{localStorage.setItem('sl-gh-token',token)}catch{}load()};
+$('#forget').onclick=()=>{token='';$('#token').value='';try{localStorage.removeItem('sl-gh-token')}catch{}load()};
+$('#save').onclick=async()=>{
+  if(!token)return status('Connect GitHub first to save.','bad');
+  const err=validate(data); if(err)return status(err,'bad');
+  $('#save').disabled=true; status('Saving…');
+  try{
+    for(const k of ['products','promos']){
+      const {sha}=await gh(k+'.json');
+      await gh(k+'.json',{method:'PUT',body:JSON.stringify({message:`Update ${k} from admin`,branch:BRANCH,sha,content:b64(JSON.stringify(data[k],null,2)+'\n')})});
+    }
+    dirty=false; status('Saved — the website will update within about a minute.','ok');
+  }catch(e){status('Not saved: '+e.message,'bad')}
+  $('#save').disabled=false;
+};
+addEventListener('beforeunload',e=>{if(dirty)e.preventDefault()});
+load();
+</script>
+</body>
+</html>

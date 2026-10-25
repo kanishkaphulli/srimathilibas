@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Srimathi Libas</title>
+<meta name="description" content="Srimathi Libas – Indian traditional attire for women in Auckland, New Zealand. Ethnic suits, lehengas, sarees and co-ord sets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf6ef; --surface:#fff; --ink:#2b1a1a; --muted:#6e5a55;
+  --maroon:#7a1f2b; --maroon-deep:#561520; --gold:#b8892f; --line:#e8dccb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1112; --surface:#241819; --ink:#f3e9df; --muted:#c2aea6;
+    --maroon:#e8788a; --maroon-deep:#3a0f17; --gold:#d9ab52; --line:#3a2a2a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1112; --surface:#241819; --ink:#f3e9df; --muted:#c2aea6;
+  --maroon:#e8788a; --maroon-deep:#3a0f17; --gold:#d9ab52; --line:#3a2a2a;
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.65 "Jost",system-ui,sans-serif}
+a{color:inherit}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.logo{font-family:"Cormorant Garamond",serif;font-size:1.6rem;font-weight:600;color:var(--maroon);text-decoration:none;letter-spacing:.02em}
+nav{display:flex;gap:24px;font-size:.95rem}
+nav a{text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--maroon)}
+nav{align-items:center}
+@media (max-width:640px){nav a{display:none}}
+
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--maroon-deep),#8e2a37 60%,#5b1823);color:#fbefe0}
+.hero::after{content:"";position:absolute;inset:0;opacity:.14;
+  background-image:radial-gradient(circle at 20px 20px,#f2c46d 2px,transparent 3px),radial-gradient(circle at 0 0,transparent 18px,#f2c46d 19px,transparent 20px);
+  background-size:40px 40px}
+.hero .wrap{position:relative;z-index:1;padding-top:72px;padding-bottom:80px;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}
+.hero-img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:200px 200px 16px 16px;border:3px solid #f2c46d66}
+@media (max-width:800px){.hero .wrap{grid-template-columns:1fr}.hero-img{max-width:360px;justify-self:center}}
+.hero h1{font-size:clamp(2.6rem,7vw,4.8rem);margin:12px 0 18px;max-width:14ch}
+.hero h1 em{color:#f2c46d;font-style:italic;font-weight:500}
+.hero p{max-width:52ch;font-size:1.1rem;color:#f0dccb}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.btn{display:inline-block;padding:13px 26px;border-radius:999px;text-decoration:none;font-weight:500;font-size:.95rem}
+.btn-gold{background:#f2c46d;color:#3a0f17}
+.btn-gold:hover{background:#f7d58f}
+.btn-ghost{border:1px solid #f2c46d88;color:#fbefe0}
+.btn-ghost:hover{background:#ffffff14}
+
+section{padding:88px 0}
+.head{text-align:center;margin-bottom:48px}
+.head h2{font-size:clamp(2rem,4.5vw,2.9rem);color:var(--maroon)}
+.head p{color:var(--muted);max-width:56ch;margin:10px auto 0}
+.divider{width:64px;height:2px;background:var(--gold);margin:16px auto 0}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .2s}
+.card:hover{transform:translateY(-4px)}
+.card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--line)}
+.card-body{padding:16px 18px 20px}
+.card h3{font-size:1.4rem}
+.card .cat{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.12em}
+.price{font-weight:500;color:var(--maroon);margin:4px 0 12px}
+.buy{display:flex;gap:8px}
+select,input,textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+.buy select{width:auto;flex:0 0 auto}
+.btn-solid{flex:1;background:var(--maroon);color:var(--surface);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
+.btn-solid:hover{filter:brightness(1.1)}
+.btn-solid:disabled{opacity:.5;cursor:not-allowed}
+.low{color:var(--gold);font-size:.85rem;font-weight:400}
+.promos{padding-bottom:0}
+.promo{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:22px 24px}
+.promo .tag{display:inline-block;background:var(--maroon);color:var(--surface);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 12px;margin-bottom:10px}
+.promo h3{font-size:1.5rem}
+.promo p{color:var(--muted);font-size:.95rem;margin-top:6px}
+.promo small{display:block;margin-top:10px;color:var(--gold);font-weight:500}
+.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:-24px 0 36px}
+.filters button{font:inherit;font-size:.9rem;background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:7px 16px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--surface)}
+
+.bag-btn{font:inherit;font-size:.95rem;background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.bag-btn b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:var(--maroon);color:var(--surface);font-size:.75rem;margin-left:6px}
+
+dialog{border:0;padding:0;margin:0 0 0 auto;height:100dvh;max-height:none;width:min(440px,100vw);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:#0008}
+.panel{display:flex;flex-direction:column;height:100%}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:1.7rem}
+.x{background:none;border:0;font-size:1.6rem;line-height:1;color:var(--muted);cursor:pointer;padding:4px 8px}
+.panel-body{flex:1;overflow:auto;padding:20px}
+.panel-foot{padding:16px 20px 20px;border-top:1px solid var(--line);display:grid;gap:10px}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.line img{width:64px;height:80px;object-fit:cover;border-radius:6px}
+.line small{color:var(--muted);display:block}
+.qty{display:flex;align-items:center;gap:6px;margin-top:4px}
+.qty button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;font-size:.85rem;padding:0}
+.row{display:flex;justify-content:space-between}
+.row.total{font-weight:500;font-size:1.1rem}
+.empty{color:var(--muted);text-align:center;padding:48px 0}
+.field{display:grid;gap:4px;margin-bottom:14px;font-size:.9rem}
+.field>span{font-weight:500}
+fieldset{border:0;padding:0;margin:0 0 14px;display:grid;gap:8px}
+legend{font-weight:500;font-size:.9rem;margin-bottom:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.9rem;cursor:pointer}
+.opt input{width:auto;margin-top:4px}
+.opt small{color:var(--muted);display:block}
+.err{color:#c0392b;font-size:.85rem;min-height:1.2em}
+.done-mark{width:64px;height:64px;border-radius:50%;background:var(--gold);color:#fff;display:grid;place-items:center;font-size:2rem;margin:8px auto 16px}
+.done h3{text-align:center;font-size:1.8rem}
+.done p{color:var(--muted);text-align:center;margin:8px 0 18px}
+.summary{background:var(--bg);border-radius:10px;padding:14px 16px;font-size:.9rem;white-space:pre-wrap;font-family:inherit}
+.btn-wa{display:block;text-align:center;background:#1f8f4e;color:#fff;border-radius:999px;padding:12px;text-decoration:none;font-weight:500}
+
+.about{background:var(--surface);border-block:1px solid var(--line)}
+.about .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
+@media (max-width:800px){.about .wrap{grid-template-columns:1fr;gap:32px}}
+.about h2{font-size:clamp(2rem,4.5vw,2.9rem);color:var(--maroon);margin-bottom:16px}
+.about p+p{margin-top:14px}
+.about p{color:var(--muted)}
+.points{display:grid;gap:14px;list-style:none;padding:0}
+.points li{border-left:3px solid var(--gold);padding:10px 0 10px 18px}
+.points strong{display:block;font-family:"Cormorant Garamond",serif;font-size:1.35rem;color:var(--ink)}
+.points span{color:var(--muted);font-size:.95rem}
+
+.steps{counter-reset:s}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 24px}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;
+  background:var(--maroon);color:#fff;font-family:"Cormorant Garamond",serif;font-size:1.3rem;margin-bottom:14px}
+.step h3{font-size:1.45rem}
+.step p{color:var(--muted);font-size:.95rem;margin-top:6px}
+
+.contact{background:linear-gradient(135deg,var(--maroon-deep),#7a1f2b);color:#fbefe0;text-align:center}
+.contact h2{font-size:clamp(2rem,4.5vw,2.9rem)}
+.contact p{color:#f0dccb;max-width:50ch;margin:12px auto 0}
+.contact .btns{justify-content:center}
+.details{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 32px;margin-top:36px;font-size:.95rem;color:#f0dccb}
+.details a{text-decoration:none;border-bottom:1px solid #f2c46d66}
+
+footer{padding:28px 0;text-align:center;color:var(--muted);font-size:.85rem}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top">Srimathi Libas</a>
+    <nav aria-label="Main">
+      <a href="#collections">Collections</a>
+      <a href="#about">About</a>
+      <a href="#order">How to order</a>
+      <a href="#contact">Contact</a>
+      <button class="bag-btn cta-link" id="open-bag" aria-label="Open shopping bag">Bag<b id="bag-count">0</b></button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+      <h1 id="hero-title">Elegance woven in <em>tradition</em></h1>
+      <p>Indian traditional attire from Auckland — ethnic suits, lehengas, sarees and co-ord sets for every celebration, handpicked from India and brought to women across New Zealand.</p>
+      <div class="btns">
+        <a class="btn btn-gold" href="#collections">Shop the collection</a>
+        <a class="btn btn-ghost" href="https://wa.me/64210747404" target="_blank" rel="noopener">Chat on WhatsApp</a>
+      </div>
+      </div>
+      <img class="hero-img" src="https://images.unsplash.com/photo-1746372283841-dbb3838f9935?w=800&q=80" alt="Woman in elegant Indian traditional attire standing in a doorway">
+    </div>
+  </section>
+
+  <section id="promos" class="promos" aria-labelledby="promo-title" hidden>
+    <div class="wrap">
+      <div class="head">
+        <h2 id="promo-title">What's New</h2>
+        <p>Latest offers, arrivals and updates from Srimathi Libas.</p>
+        <div class="divider"></div>
+      </div>
+      <div class="grid" id="promo-list"></div>
+    </div>
+  </section>
+
+  <section id="collections" aria-labelledby="col-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="col-title">Our Collections</h2>
+        <p>From everyday ethnic wear to festive and bridal looks — find the outfit that feels like you.</p>
+        <div class="divider"></div>
+      </div>
+      <div class="filters" role="group" aria-label="Filter by category"></div>
+      <div class="grid" id="products"></div>
+    </div>
+  </section>
+
+  <section id="about" class="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <div>
+        <h2 id="about-title">A little piece of India, here in Auckland</h2>
+        <p>Srimathi Libas was born from a simple wish — to make beautiful Indian traditional wear easy to find in New Zealand, without the guesswork of ordering from overseas.</p>
+        <p>Every piece is chosen for its fabric, finish and fit, so you can dress with confidence for weddings, festivals, poojas and every celebration in between.</p>
+      </div>
+      <ul class="points">
+        <li><strong>Handpicked designs</strong><span>Curated pieces you won't find on every rack.</span></li>
+        <li><strong>Local &amp; personal</strong><span>Auckland-based, with friendly one-on-one help choosing your outfit.</span></li>
+        <li><strong>For every occasion</strong><span>Casual, festive and bridal — all in one place.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="order" aria-labelledby="order-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="order-title">How to Order</h2>
+        <p>Shopping with us is simple and personal.</p>
+        <div class="divider"></div>
+      </div>
+      <div class="grid steps">
+        <div class="step"><h3>Add to bag</h3><p>Pick your outfit and size, then add it to your bag.</p></div>
+        <div class="step"><h3>Checkout</h3><p>Enter your details and choose Auckland pickup or NZ-wide delivery.</p></div>
+        <div class="step"><h3>Send your order</h3><p>Send it to us on WhatsApp or email in one tap — we confirm stock and payment within 24 hours.</p></div>
+        <div class="step"><h3>Pickup or delivery</h3><p>Pay by bank transfer and collect in Auckland, or we courier it to your door.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <h2 id="contact-title">Find your perfect outfit</h2>
+      <p>Have a celebration coming up? Get in touch — we'd love to help you look and feel your best.</p>
+      <div class="btns">
+        <a class="btn btn-gold" href="https://wa.me/64210747404" target="_blank" rel="noopener">WhatsApp us</a>
+        <a class="btn btn-ghost" href="https://www.facebook.com/profile.php?id=61572646875651" target="_blank" rel="noopener">Visit our Facebook</a>
+      </div>
+      <div class="details">
+        <span>📞 <a href="tel:+64210747404">+64 210 747 404</a></span>
+        <span>✉️ <a href="mailto:Srimathilibasnz@gmail.com">Srimathilibasnz@gmail.com</a></span>
+        <span>📍 Auckland, New Zealand</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© <span id="y">2026</span> Srimathi Libas · Indian Traditional Attire for Women · Auckland, New Zealand</footer>
+<dialog id="bag" aria-labelledby="bag-title">
+  <!-- Step 1: bag -->
+  <div class="panel" data-step="bag">
+    <div class="panel-head"><h2 id="bag-title">Your Bag</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-body" id="bag-lines"></div>
+    <div class="panel-foot">
+      <div class="row total"><span>Subtotal</span><span id="bag-sub"></span></div>
+      <button class="btn-solid" id="to-checkout">Checkout</button>
+    </div>
+  </div>
+  <!-- Step 2: details -->
+  <form class="panel" data-step="details" id="checkout" hidden novalidate>
+    <div class="panel-head"><h2>Your Details</h2><button type="button" class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-body">
+      <label class="field"><span>Full name *</span><input name="name" required autocomplete="name"></label>
+      <label class="field"><span>Phone *</span><input name="phone" type="tel" required autocomplete="tel" pattern="[\d\s\+\(\)\-]{7,}" placeholder="021 123 4567"></label>
+      <label class="field"><span>Email</span><input name="email" type="email" autocomplete="email"></label>
+      <fieldset>
+        <legend>Pickup or delivery *</legend>
+        <label class="opt"><input type="radio" name="method" value="pickup" checked><span>Pickup in Auckland<small>Free — we'll message you the pickup address</small></span></label>
+        <label class="opt"><input type="radio" name="method" value="delivery"><span>NZ-wide courier<small id="ship-label"></small></span></label>
+      </fieldset>
+      <label class="field" id="addr-field" hidden><span>Delivery address *</span><textarea name="address" rows="3" autocomplete="street-address"></textarea></label>
+      <label class="field"><span>Notes (measurements, event date…)</span><textarea name="notes" rows="2"></textarea></label>
+      <p class="err" id="form-err" role="alert"></p>
+    </div>
+    <div class="panel-foot">
+      <div class="row"><span>Subtotal</span><span id="co-sub"></span></div>
+      <div class="row"><span>Delivery</span><span id="co-ship"></span></div>
+      <div class="row total"><span>Total</span><span id="co-total"></span></div>
+      <button class="btn-solid" type="submit">Place order</button>
+      <button class="link" type="button" id="back-to-bag">← Back to bag</button>
+    </div>
+  </form>
+  <!-- Step 3: confirmation -->
+  <div class="panel" data-step="done" hidden>
+    <div class="panel-head"><h2>Order Placed</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="panel-body done">
+      <div class="done-mark" aria-hidden="true">✓</div>
+      <h3>Thank you!</h3>
+      <p>Your order <strong id="order-no"></strong> is ready. <strong>One last step:</strong> send it to us so we can confirm stock and share bank transfer details within 24 hours.</p>
+      <pre class="summary" id="order-summary"></pre>
+    </div>
+    <div class="panel-foot">
+      <a class="btn-wa" id="send-wa" target="_blank" rel="noopener">Send order on WhatsApp</a>
+      <a class="btn btn-ghost" id="send-email" style="text-align:center;color:var(--ink);border-color:var(--line)">Send by email instead</a>
+    </div>
+  </div>
+</dialog>
+
+<script type="module">
+document.getElementById('y').textContent=new Date().getFullYear();
+
+const SHOP_PHONE='64210747404', SHOP_EMAIL='Srimathilibasnz@gmail.com', SHIPPING=12;
+// Catalogue and promos are edited in admin.html, which commits these files to GitHub
+const load=f=>fetch(f,{cache:'no-cache'}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+const [PRODUCTS,PROMOS]=await Promise.all([load('products.json'),load('promos.json')]);
+const SIZES=['XS','S','M','L','XL','XXL'];
+const $=s=>document.querySelector(s), byId=id=>PRODUCTS.find(p=>p.id===id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>`&#${c.charCodeAt(0)};`);
+const nzd=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(n);
+const subtotal=(items,list=PRODUCTS)=>items.reduce((t,i)=>t+list.find(p=>p.id===i.id).price*i.qty,0);
+console.assert(subtotal([{id:'a',qty:2},{id:'b',qty:1}],[{id:'a',price:129},{id:'b',price:109}])===367,'subtotal');
+const inBag=id=>cart.filter(i=>i.id===id).reduce((n,i)=>n+i.qty,0);
+
+// What's New: active promos that haven't expired (NZ date)
+const today=new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'});
+const live=PROMOS.filter(p=>p.active&&(!p.until||p.until>=today));
+$('#promos').hidden=!live.length;
+$('#promo-list').innerHTML=live.map(p=>`
+  <article class="promo"><span class="tag">${esc(p.tag)}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p>
+  ${p.until?`<small>Until ${new Date(p.until+'T00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long'})}</small>`:''}</article>`).join('');
+
+let cart=[];
+try{cart=(JSON.parse(localStorage.getItem('sl-cart'))||[]).filter(i=>byId(i.id)?.stock>0)}catch{}
+const save=()=>{try{localStorage.setItem('sl-cart',JSON.stringify(cart))}catch{} renderBag()};
+
+// Shop grid + filters
+const cats=['All',...new Set(PRODUCTS.map(p=>p.cat))];
+$('.filters').innerHTML=cats.map((c,i)=>`<button aria-pressed="${!i}">${esc(c)}</button>`).join('');
+$('.filters').onclick=e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  $('.filters').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===e.target));
+  const c=e.target.textContent;
+  document.querySelectorAll('#products .card').forEach(el=>el.hidden=c!=='All'&&el.dataset.cat!==c);
+};
+$('#products').innerHTML=PRODUCTS.map(p=>`
+  <article class="card" data-cat="${esc(p.cat)}">
+    <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
+    <div class="card-body">
+      <div class="cat">${esc(p.cat)}</div><h3>${esc(p.name)}</h3>
+      <div class="price">${nzd(p.price)}${p.stock>0&&p.stock<=3?` <span class="low">· Only ${p.stock} left</span>`:''}</div>
+      <div class="buy">
+        ${p.cat==='Sarees'?'<input type="hidden" value="Free size">':`<select aria-label="Size for ${esc(p.name)}">${SIZES.map(s=>`<option${s==='M'?' selected':''}>${s}</option>`).join('')}</select>`}
+        <button class="btn-solid" data-add="${esc(p.id)}"${p.stock>0?'':' disabled'}>${p.stock>0?'Add to bag':'Sold out'}</button>
+      </div>
+    </div>
+  </article>`).join('')||'<p class="empty">New collection coming soon.</p>';
+$('#products').onclick=e=>{
+  const id=e.target.dataset.add; if(!id)return;
+  if(inBag(id)>=byId(id).stock)return alert(`Sorry, only ${byId(id).stock} available.`);
+  const size=e.target.previousElementSibling.value;
+  const hit=cart.find(i=>i.id===id&&i.size===size);
+  hit?hit.qty++:cart.push({id,size,qty:1});
+  save(); openBag('bag');
+};
+
+// Bag
+const dlg=$('#bag');
+function show(step){dlg.querySelectorAll('[data-step]').forEach(p=>p.hidden=p.dataset.step!==step)}
+function openBag(step){show(step); if(!dlg.open)dlg.showModal()}
+$('#open-bag').onclick=()=>openBag('bag');
+dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('[data-close]'))dlg.close()});
+
+function renderBag(){
+  $('#bag-count').textContent=cart.reduce((n,i)=>n+i.qty,0);
+  $('#bag-sub').textContent=nzd(subtotal(cart));
+  $('#to-checkout').disabled=!cart.length;
+  $('#bag-lines').innerHTML=cart.length?cart.map((i,k)=>{const p=byId(i.id);return `
+    <div class="line">
+      <img src="${esc(p.img)}" alt="">
+      <div><strong>${esc(p.name)}</strong><small>Size: ${esc(i.size)}</small>
+        <div class="qty"><button data-q="${k}" data-d="-1" aria-label="Decrease quantity">−</button><span>${i.qty}</span><button data-q="${k}" data-d="1" aria-label="Increase quantity">+</button>
+        <button class="link" data-rm="${k}">Remove</button></div></div>
+      <div>${nzd(p.price*i.qty)}</div>
+    </div>`}).join(''):'<p class="empty">Your bag is empty.</p>';
+}
+$('#bag-lines').onclick=e=>{
+  const {q,d,rm}=e.target.dataset;
+  if(rm!==undefined)cart.splice(rm,1);
+  else if(q!==undefined){
+    if(+d>0&&inBag(cart[q].id)>=byId(cart[q].id).stock)return alert(`Sorry, only ${byId(cart[q].id).stock} available.`);
+    cart[q].qty+=+d; if(cart[q].qty<1)cart.splice(q,1)}
+  else return;
+  save();
+};
+
+// Checkout
+const form=$('#checkout');
+$('#ship-label').textContent=nzd(SHIPPING)+' — tracked, 2–5 working days';
+function totals(){
+  const ship=form.method.value==='delivery'?SHIPPING:0, sub=subtotal(cart);
+  $('#addr-field').hidden=!ship; form.address.required=!!ship;
+  $('#co-sub').textContent=nzd(sub); $('#co-ship').textContent=ship?nzd(ship):'Free'; $('#co-total').textContent=nzd(sub+ship);
+  return {sub,ship};
+}
+$('#to-checkout').onclick=()=>{totals(); show('details')};
+$('#back-to-bag').onclick=()=>show('bag');
+form.addEventListener('change',totals);
+form.onsubmit=e=>{
+  e.preventDefault();
+  const bad=[...form.elements].find(el=>el.willValidate&&!el.checkValidity());
+  if(bad){$('#form-err').textContent='Please check: '+bad.closest('label').querySelector('span').textContent.replace(' *','');bad.focus();return}
+  if(!cart.length)return show('bag');
+  $('#form-err').textContent='';
+  const {sub,ship}=totals(), f=Object.fromEntries(new FormData(form));
+  const no='SL-'+new Date().toLocaleDateString('en-CA',{timeZone:'Pacific/Auckland'}).slice(2).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  const msg=[
+    `New order ${no}`,'',
+    ...cart.map(i=>{const p=byId(i.id);return `• ${p.name} (${i.size}) × ${i.qty} — ${nzd(p.price*i.qty)}`}),
+    '',`Subtotal: ${nzd(sub)}`,`Delivery: ${ship?nzd(ship):'Pickup (free)'}`,`Total: ${nzd(sub+ship)}`,'',
+    `Name: ${f.name}`,`Phone: ${f.phone}`,f.email?`Email: ${f.email}`:null,
+    ship?`Deliver to: ${f.address}`:'Pickup in Auckland',f.notes?`Notes: ${f.notes}`:null
+  ].filter(l=>l!==null).join('\n');
+  $('#order-no').textContent=no;
+  $('#order-summary').textContent=msg;
+  $('#send-wa').href=`https://wa.me/${SHOP_PHONE}?text=${encodeURIComponent(msg)}`;
+  $('#send-email').href=`mailto:${SHOP_EMAIL}?subject=${encodeURIComponent('Order '+no)}&body=${encodeURIComponent(msg)}`;
+  cart=[]; save(); form.reset();
+  show('done');
+};
+renderBag();
+</script>
+</body>
+</html>
