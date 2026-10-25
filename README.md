@@ -22,7 +22,9 @@ Open `/admin` and sign in with a name and password from the `ADMIN_USERS` secret
   - Marking an order paid takes its items off stock. Cancelling a paid order puts them back. Refund card payments in Stripe yourself.
 - **Products & Stock:** click a product to open it.
   - Each product has a list of sizes and one or more **colours**.
-  - Each colour has a swatch, up to 8 photos (the first one is the main photo; use ★ to change it) and a stock table with one row per colour and one column per size.
+  - Each colour has up to 8 photos (the first one is the main photo; use ★ to change it) and a stock table with one row per colour and one column per size.
+  - **+ Add colour** and **Change** open a palette of named colours (Red, Maroon, Rani Pink, Mustard, Royal Blue and so on) to tap. **Can't find it?** lets you type your own name, and the swatch fills in automatically when the name is a known colour.
+  - Change stock with the **−** and **+** buttons, or type a number.
   - Photos can be JPG, PNG, WebP or AVIF, up to 5 MB each.
   - Click **Save & publish** to apply your changes.
 - **Stock sheet (Excel):**

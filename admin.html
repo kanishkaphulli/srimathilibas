@@ -58,12 +58,23 @@ details.prod summary img{width:40px;height:52px;object-fit:cover;border-radius:4
 table.stock{min-width:0;width:auto}
 table.stock th,table.stock td{padding:6px;text-align:center}
 table.stock th:first-child,table.stock td:first-child{text-align:left}
-.cname{display:flex;gap:6px;align-items:center}
-.cname input[type=color]{width:34px;height:34px;padding:2px;flex:0 0 auto}
-.cname input:not([type=color]){min-width:120px}
-.cname input.hextext{min-width:0;width:96px;font-family:ui-monospace,monospace;font-size:.85rem}
-.cname input.badhex{border-color:var(--bad)}
-input.qty{width:64px;text-align:center}
+.colbtn{display:flex;align-items:center;gap:8px;border-radius:8px;padding:6px 10px;min-width:150px;text-align:left}
+.colbtn i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);flex:0 0 auto}
+.colbtn span{flex:1}
+.colbtn small{font-size:.75rem;text-decoration:underline}
+.qs{display:flex;align-items:center;gap:2px;justify-content:center}
+.qs button{width:32px;height:36px;padding:0;border-radius:8px;font-size:1.1rem;line-height:1}
+#palette{margin:auto;max-height:90dvh;overflow:auto;border:0;border-radius:14px;padding:20px;width:min(560px,calc(100vw - 32px));background:var(--surface);color:var(--ink)}
+#palette::backdrop{background:#0006}
+#palette h2{font-size:1.5rem;margin-bottom:12px}
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;margin-bottom:12px}
+.pal button{display:flex;align-items:center;gap:8px;border-radius:8px;padding:8px 10px;font-size:.88rem;text-align:left}
+.pal button i{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);flex:0 0 auto}
+.pal button:disabled{opacity:.35;cursor:not-allowed}
+.other{margin-bottom:12px}
+.other summary{cursor:pointer;color:var(--maroon);font-size:.9rem;margin-bottom:8px}
+.other input[type=color]{width:44px;height:38px;padding:2px;flex:0 0 auto}
+input.qty{width:52px;text-align:center;padding:6px 2px}
 .tot{font-weight:500}
 .photos{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
 .plabel{display:flex;align-items:center;gap:6px;min-width:110px;font-size:.9rem}
@@ -138,6 +149,19 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
   </section>
 </main>
 
+<dialog id="palette" aria-labelledby="pal-title">
+  <h2 id="pal-title">Choose a colour</h2>
+  <div class="pal" id="pal-grid"></div>
+  <details class="other"><summary>Can't find it? Type your own colour</summary>
+    <div class="row">
+      <input id="pal-name" placeholder="Colour name, e.g. Rani Pink" maxlength="30" aria-label="Colour name">
+      <input id="pal-hex" type="color" value="#888888" aria-label="Swatch colour">
+      <button id="pal-use" class="primary">Use this colour</button>
+    </div>
+    <p class="hint">If the name is a known colour, the swatch fills in by itself. Otherwise tap the swatch to pick.</p>
+  </details>
+  <div class="row" style="justify-content:flex-end"><button id="pal-cancel">Cancel</button></div>
+</dialog>
 <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple hidden>
 <input type="file" id="sheet-file" accept=".xlsx,.xls,.csv" hidden>
 <div class="bar"><div class="wrap"><span id="status" role="status">Loading…</span><button id="save" class="primary">Save &amp; publish</button></div></div>
@@ -193,12 +217,13 @@ function render(){
         <select data-act="add-size" aria-label="Add a size" style="width:auto"><option value="">+ Add size</option>${COMMON_SIZES.filter(s=>!p.sizes.includes(s)).map(s=>`<option>${s}</option>`).join('')}<option value="__other">Other…</option></select>
       </div>
 
-      <h3>Stock by colour and size</h3>
+      <h3>Stock — how many you have of each colour and size</h3>
+      <p class="hint">Use <b>−</b> and <b>+</b> to change a number. Stock goes down by itself when an order is paid.</p>
       <div class="table"><table class="stock">
         <thead><tr><th>Colour</th>${p.sizes.map(s=>`<th>${esc(s)}</th>`).join('')}<th>Total</th><th></th></tr></thead>
         <tbody>${p.colours.map((c,ci)=>`<tr>
-          <td><div class="cname"><input type="color" data-c="${ci}" data-f="hex" value="${esc(c.hex)}" aria-label="Swatch for ${esc(c.name)}"><input class="hextext" data-c="${ci}" data-f="hextext" value="${esc(c.hex)}" placeholder="#hex or name" aria-label="Swatch colour code for ${esc(c.name)}" title="Type a colour code like #1f3a93 or a colour name like maroon"><input data-c="${ci}" data-f="cname" value="${esc(c.name)}" placeholder="Colour name" aria-label="Colour name" required></div></td>
-          ${p.sizes.map(s=>`<td><input class="qty" type="number" min="0" step="1" data-c="${ci}" data-size="${esc(s)}" value="${c.stock[s]??0}" aria-label="${esc(c.name)} ${esc(s)} stock"></td>`).join('')}
+          <td><button class="colbtn" data-act="pick-colour" data-c="${ci}" aria-label="Change colour ${esc(c.name)}"><i style="background:${esc(c.hex)}"></i><span>${esc(c.name)||'Choose colour'}</span><small>Change</small></button></td>
+          ${p.sizes.map(s=>`<td><div class="qs"><button data-act="dec" data-c="${ci}" data-size="${esc(s)}" aria-label="One less ${esc(c.name)} ${esc(s)}">−</button><input class="qty" type="number" min="0" step="1" inputmode="numeric" data-c="${ci}" data-size="${esc(s)}" value="${c.stock[s]??0}" aria-label="${esc(c.name)} ${esc(s)} stock"><button data-act="inc" data-c="${ci}" data-size="${esc(s)}" aria-label="One more ${esc(c.name)} ${esc(s)}">+</button></div></td>`).join('')}
           <td class="tot">${p.sizes.reduce((t,s)=>t+(c.stock[s]||0),0)}</td>
           <td>${p.colours.length>1?`<button class="danger" data-act="rm-colour" data-c="${ci}">Remove</button>`:''}</td></tr>`).join('')}
         </tbody>
@@ -237,19 +262,11 @@ function toHex(v){
   return '';
 }
 console.assert(toHex('Royal Blue')==='#4169e1'&&toHex('#ABC')==='#aabbcc'&&toHex('mustardish')==='','toHex');
-function setSwatch(t,c,h,fromName){
-  c.hex=h; const box=t.closest('.cname');
-  box.querySelector('[type=color]').value=h;
-  if(fromName)box.querySelector('[data-f=hextext]').value=h;
-}
 $('#products').addEventListener('toggle',e=>{const p=prodOf(e.target); if(p)e.target.open?open.add(p.id):open.delete(p.id)},true);
 $('#products').addEventListener('input',e=>{
   const t=e.target, p=prodOf(t); if(!p)return;
   const c=t.dataset.c!==undefined?p.colours[t.dataset.c]:null;
   if(t.dataset.size!==undefined){c.stock[t.dataset.size]=t.value===''?null:+t.value; t.closest('tr').querySelector('.tot').textContent=p.sizes.reduce((a,s)=>a+(c.stock[s]||0),0)}
-  else if(t.dataset.f==='hex'){c.hex=t.value; t.closest('.cname').querySelector('[data-f=hextext]').value=t.value}
-  else if(t.dataset.f==='hextext'){const h=toHex(t.value); t.classList.toggle('badhex',!h&&t.value.trim()!==''); if(h)setSwatch(t,c,h,false)}
-  else if(t.dataset.f==='cname'){c.name=t.value; const h=toHex(t.value); if(h)setSwatch(t,c,h,true)}
   else if(t.dataset.f==='price')p.price=t.value===''?null:+t.value;
   else if(t.dataset.f)p[t.dataset.f]=t.value;
   changed();
@@ -264,9 +281,16 @@ $('#products').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]'); if(!b||b.tagName==='SELECT')return;
   const p=prodOf(b); if(!p)return; e.preventDefault();
   const ci=+b.dataset.c, c=p.colours[ci];
+  if(b.dataset.act==='inc'||b.dataset.act==='dec'){ // change one stock number in place (no re-render, so the page doesn't jump)
+    const s=b.dataset.size, n=Math.max(0,(c.stock[s]||0)+(b.dataset.act==='inc'?1:-1));
+    c.stock[s]=n; b.parentElement.querySelector('input').value=n;
+    b.closest('tr').querySelector('.tot').textContent=p.sizes.reduce((a,x)=>a+(c.stock[x]||0),0);
+    return changed();
+  }
   switch(b.dataset.act){
+    case 'pick-colour': return openPalette(p,ci);
+    case 'add-colour': return openPalette(p,null);
     case 'rm-size': {const s=p.sizes[b.dataset.s]; if(!confirm(`Remove size ${s} and its stock from ${p.name||'this product'}?`))return; p.sizes.splice(b.dataset.s,1); p.colours.forEach(c=>delete c.stock[s]); break}
-    case 'add-colour': p.colours.push({name:'',hex:'#888888',photos:[],stock:Object.fromEntries(p.sizes.map(s=>[s,0]))}); break;
     case 'rm-colour': if(!confirm(`Remove colour "${c.name}" with its photos and stock?`))return; p.colours.splice(ci,1); break;
     case 'main': c.photos.unshift(...c.photos.splice(+b.dataset.ph,1)); break;
     case 'rm-photo': c.photos.splice(+b.dataset.ph,1); break;
@@ -275,6 +299,35 @@ $('#products').addEventListener('click',e=>{
   }
   render(); changed();
 });
+
+// Colour palette: tap a named colour (or type your own) — no colour codes for the admin to deal with
+const PALETTE=[['Red','#c0392b'],['Maroon','#7a1f2b'],['Wine','#5e1224'],['Rani Pink','#d81b60'],['Pink','#f06292'],['Baby Pink','#f8bbd0'],
+  ['Peach','#f4b393'],['Orange','#e67e22'],['Yellow','#f4d03f'],['Mustard','#d4a017'],['Gold','#c9a227'],['Beige','#d9c3a0'],
+  ['Cream','#f3e9d2'],['White','#ffffff'],['Silver','#c0c0c0'],['Grey','#9e9e9e'],['Black','#111111'],['Brown','#7b4b2a'],
+  ['Green','#27ae60'],['Bottle Green','#145a32'],['Mint','#98d8b8'],['Teal','#138d90'],['Sky Blue','#7ec8e3'],['Royal Blue','#2952a3'],
+  ['Navy','#1b2a49'],['Purple','#7d3c98'],['Lavender','#b9a2d6'],['Magenta','#c2185b']];
+let palFor=null;
+function openPalette(p,ci){
+  palFor={p,ci};
+  const used=new Set(p.colours.filter((_,i)=>i!==ci).map(c=>c.name.trim().toLowerCase()));
+  $('#pal-title').textContent=ci===null?'Add a colour':`Change colour "${p.colours[ci].name}"`;
+  $('#pal-grid').innerHTML=PALETTE.map(([n,h])=>`<button data-name="${n}" data-hex="${h}"${used.has(n.toLowerCase())?' disabled title="Already added"':''}><i style="background:${h}"></i>${n}</button>`).join('');
+  $('#pal-name').value=''; $('#pal-hex').value='#888888'; $('#palette').querySelector('details').open=false;
+  $('#palette').showModal();
+}
+function useColour(name,hex){
+  const {p,ci}=palFor; name=name.trim();
+  if(!name)return status('Type a colour name first','bad');
+  if(p.colours.some((c,i)=>i!==ci&&c.name.trim().toLowerCase()===name.toLowerCase()))return status(`${name} is already added to this product`,'bad');
+  if(ci===null)p.colours.push({name,hex,photos:[],stock:Object.fromEntries(p.sizes.map(s=>[s,0]))});
+  else Object.assign(p.colours[ci],{name,hex});
+  $('#palette').close(); render(); changed();
+  if(ci===null)status(`${name} added — now add its photos and stock, then Save & publish`,'ok');
+}
+$('#pal-grid').onclick=e=>{const b=e.target.closest('button[data-name]'); if(b&&!b.disabled)useColour(b.dataset.name,b.dataset.hex)};
+$('#pal-name').oninput=()=>{const h=toHex($('#pal-name').value); if(h)$('#pal-hex').value=h};
+$('#pal-use').onclick=()=>useColour($('#pal-name').value,$('#pal-hex').value);
+$('#pal-cancel').onclick=()=>$('#palette').close();
 
 // Photo upload: several files at once, each stored in Cloudflare, added to that colour
 let upFor=null;
