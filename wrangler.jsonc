@@ -16,5 +16,10 @@
   // Uploaded product photos, served at /photos/<key>
   "r2_buckets": [
     { "binding": "PHOTOS", "bucket_name": "srimathilibas-photos" }
+  ],
+  // Per-IP limits: sign-in attempts and order placement
+  "ratelimits": [
+    { "name": "LOGIN_LIMIT", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "ORDER_LIMIT", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } }
   ]
 }

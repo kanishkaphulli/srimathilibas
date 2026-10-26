@@ -1,7 +1,8 @@
 // End-to-end API tests against the real Worker on a throwaway database. Run: npm test
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { startServer, signIn, ADMIN, ADMIN2 } from './helpers/server.mjs';
+import { createHmac } from 'node:crypto';
+import { startServer, signIn, ADMIN, ADMIN2, WEBHOOK_SECRET } from './helpers/server.mjs';
 
 let s, cookie;
 const json = (path, init) => s.get(path, init).then(async (r) => ({ status: r.status, body: await r.json().catch(() => null), headers: r.headers }));
@@ -25,7 +26,7 @@ describe('public shop', () => {
   });
   it('reports settings and payment setup', async () => {
     assert.deepEqual((await json('/api/settings')).body, { planner: true });
-    assert.deepEqual((await json('/api/payments')).body, { card: false });
+    assert.deepEqual((await json('/api/payments')).body, { card: true, shipping: 12 });
   });
   it('never serves private files', async () => {
     for (const f of ['/worker.js', '/order.js', '/validate.js', '/session.js', '/schema.sql', '/seed.sql', '/scripts/seed.mjs',
@@ -102,6 +103,7 @@ describe('orders and stock', () => {
     assert.equal((await post('/api/order', order({ items: [{ id: 'lh2', colour: 'As shown', size: 'S', qty: 1 }] }))).status, 400); // 0 in stock
     assert.equal((await post('/api/order', order({ items: [{ id: 'nope', colour: 'As shown', size: 'M', qty: 1 }] }))).status, 400);
     assert.equal((await post('/api/order', order({ phone: '' }))).status, 400);
+    assert.equal((await post('/api/order', order({ phone: '-------' }))).status, 400, 'a phone number needs digits');
     assert.equal((await post('/api/order', order({ no: 'hello' }))).status, 400);
     const o = order();
     assert.equal((await post('/api/order', o)).status, 200);
@@ -127,10 +129,80 @@ describe('orders and stock', () => {
     const r = await s.get(`/admin/api/orders/${o.no}`, { method: 'POST', body: JSON.stringify({ status: 'paid' }) });
     assert.equal(r.status, 401);
   });
-  it('reports card payment as not set up without a Stripe key', async () => {
-    assert.equal((await post('/api/checkout', order())).status, 503);
-    assert.equal((await post('/api/stripe-webhook', {})).status, 503);
-    assert.deepEqual((await json('/api/session?id=cs_test_abc')).body, { paid: false });
+  it('refuses to mark a bank order paid when its stock already went to another paid order', async () => {
+    // lh1 size S has 1 left; unpaid orders hold no stock, so both orders are accepted
+    const item = [{ id: 'lh1', colour: 'As shown', size: 'S', qty: 1 }];
+    const a = order({ items: item }), b = order({ items: item });
+    assert.equal((await post('/api/order', a)).status, 200);
+    assert.equal((await post('/api/order', b)).status, 200);
+    const set = (no, status) => admin(`/admin/api/orders/${no}`, { method: 'POST', body: JSON.stringify({ status }) });
+    assert.equal((await set(a.no, 'paid')).status, 200);
+    const refused = await set(b.no, 'paid');
+    assert.equal(refused.status, 409);
+    assert.match(refused.body.error, /only 0 .* left/i);
+    assert.equal(await stock('lh1', 'As shown', 'S'), 0);
+    await set(a.no, 'cancelled'); // put it back for later tests
+    assert.equal(await stock('lh1', 'As shown', 'S'), 1);
+  });
+});
+
+describe('card payments (fake Stripe)', () => {
+  const sign = (raw, t = Math.floor(Date.now() / 1000), secret = WEBHOOK_SECRET) => `t=${t},v1=${createHmac('sha256', secret).update(`${t}.${raw}`).digest('hex')}`;
+  const hook = (event, header) => { const raw = JSON.stringify(event); return s.get('/api/stripe-webhook', { method: 'POST', body: raw, headers: { 'stripe-signature': header ?? sign(raw) } }); };
+  const paidEvent = (no) => ({ type: 'checkout.session.completed', data: { object: { payment_status: 'paid', client_reference_id: no } } });
+  const status = async (no) => (await admin('/admin/api/orders')).body.find((x) => x.no === no).status;
+
+  it('prices the Stripe checkout on the server and saves the order as unpaid', async () => {
+    const o = order({ items: [{ id: 'co2', colour: 'As shown', size: 'M', qty: 2 }], delivery: 'delivery', address: '1 Queen St' });
+    const r = await post('/api/checkout', { ...o, items: o.items.map((i) => ({ ...i, price: 1 })) }); // a price from the browser is ignored
+    assert.equal(r.status, 200);
+    assert.match(r.body.url, /^https:\/\/checkout\.stripe\.test\//);
+    const form = s.stripe.created.at(-1);
+    assert.equal(form.client_reference_id, o.no);
+    assert.equal(form['line_items[0][price_data][unit_amount]'], '10900');
+    assert.equal(form['line_items[0][quantity]'], '2');
+    assert.equal(form['line_items[1][price_data][unit_amount]'], '1200');
+    assert.equal(await status(o.no), 'pending_payment');
+  });
+  it('marks the order paid when the customer comes back after paying, once', async () => {
+    const before = await stock('co1', 'As shown', 'M');
+    const o = order({ items: [{ id: 'co1', colour: 'As shown', size: 'M', qty: 1 }] });
+    await post('/api/checkout', o);
+    const id = Object.values(s.stripe.sessions).find((x) => x.client_reference_id === o.no).id;
+    assert.deepEqual((await json(`/api/session?id=${id}`)).body, { paid: false, no: o.no });
+    s.stripe.pay(id);
+    assert.deepEqual((await json(`/api/session?id=${id}`)).body, { paid: true, no: o.no });
+    await json(`/api/session?id=${id}`);
+    assert.equal(await status(o.no), 'paid');
+    assert.equal(await stock('co1', 'As shown', 'M'), before - 1);
+  });
+  it('accepts only correctly signed, recent webhooks', async () => {
+    const o = order(); await post('/api/order', o);
+    const raw = JSON.stringify(paidEvent(o.no));
+    assert.equal((await hook(paidEvent(o.no), 'nonsense')).status, 400);
+    assert.equal((await hook(paidEvent(o.no), sign(raw, undefined, 'whsec_wrong'))).status, 400);
+    assert.equal((await hook(paidEvent(o.no), sign(raw, Math.floor(Date.now() / 1000) - 600))).status, 400, 'too old');
+    assert.equal((await hook({ ...paidEvent(o.no), extra: 1 }, sign(raw))).status, 400, 'body changed after signing');
+    assert.equal(await status(o.no), 'awaiting_payment');
+    assert.equal((await hook(paidEvent(o.no))).status, 200);
+    assert.equal(await status(o.no), 'paid');
+  });
+  it('closes the Stripe checkout when an unpaid card order is cancelled', async () => {
+    const o = order(); await post('/api/checkout', o);
+    const sess = Object.values(s.stripe.sessions).find((x) => x.client_reference_id === o.no);
+    const r = await admin(`/admin/api/orders/${o.no}`, { method: 'POST', body: JSON.stringify({ status: 'cancelled' }) });
+    assert.equal(r.body.status, 'cancelled');
+    assert.equal(sess.status, 'expired');
+  });
+  it('refuses to cancel a card order whose payment just went through', async () => {
+    const o = order(); await post('/api/checkout', o);
+    const sess = Object.values(s.stripe.sessions).find((x) => x.client_reference_id === o.no);
+    s.stripe.pay(sess.id); // paid at Stripe, webhook not arrived yet
+    const r = await admin(`/admin/api/orders/${o.no}`, { method: 'POST', body: JSON.stringify({ status: 'cancelled' }) });
+    assert.equal(r.status, 409);
+    assert.equal(await status(o.no), 'pending_payment');
+    await hook(paidEvent(o.no));
+    assert.equal(await status(o.no), 'paid');
   });
 });
 
@@ -172,5 +244,15 @@ describe('admin catalogue', () => {
     assert.equal((await admin('/admin/api/photo', { method: 'POST', headers: { 'content-type': 'text/html' }, body: '<script>' })).status, 400);
     assert.equal((await admin('/admin/api/photo', { method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: new Uint8Array(5 * 1024 * 1024 + 1) })).status, 400);
     assert.equal((await s.get('/admin/api/photo', { method: 'POST', headers: { 'content-type': 'image/png' }, body: png })).status, 401);
+  });
+});
+
+describe('rate limits (runs last: it uses up the sign-in limit)', () => {
+  it('slows down password guessing even when requests run in parallel', async () => {
+    const tries = await Promise.all(Array.from({ length: 15 }, () =>
+      s.get('/admin/login', { method: 'POST', body: new URLSearchParams({ name: ADMIN.name, password: 'guess' }) })));
+    const codes = tries.map((r) => r.status);
+    assert.ok(codes.includes(429), `expected some 429s, got ${codes.join(',')}`);
+    assert.ok(codes.every((c) => c === 401 || c === 429));
   });
 });

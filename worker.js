@@ -8,7 +8,7 @@
 //  - /api/stripe-webhook       Stripe tells us a payment went through, even if the customer closed the tab
 // Secrets (set with `npx wrangler secret put NAME`): ADMIN_USERS, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 
-import { lineItems, stockPath, namePath } from './order.js';
+import { lineItems, stockPath, namePath, SHIPPING } from './order.js';
 import { validateProducts, validatePromos } from './validate.js';
 import { makeSession, readSession } from './session.js';
 
@@ -21,7 +21,11 @@ export default {
     const path = url.pathname;
 
     if (path === '/admin' || path.startsWith('/admin.') || path.startsWith('/admin/')) {
-      if (path === '/admin/login') return req.method === 'POST' ? login(req, env) : loginPage(env);
+      if (path === '/admin/login') {
+        if (req.method !== 'POST') return loginPage(env);
+        if (await limited(env.LOGIN_LIMIT, req)) return loginPage(env, 'Too many sign-in attempts. Wait a minute and try again.', '', 429);
+        return login(req, env);
+      }
       if (path === '/admin/logout' && req.method === 'POST') return logout();
       const who = await currentAdmin(req, env);
       if (!who) return path.startsWith('/admin/api/') ? json({ error: 'You have been signed out. Please sign in again.' }, 401) : redirect('/admin/login');
@@ -34,16 +38,21 @@ export default {
     if (path === '/products.json') return json(await getProducts(env));
     if (path === '/promos.json') return json(await getPromos(env));
     if (path.startsWith('/photos/')) return photo(env, path.slice('/photos/'.length));
-    if (path === '/api/payments') return json({ card: !!env.STRIPE_SECRET_KEY });
+    if (path === '/api/payments') return json({ card: !!env.STRIPE_SECRET_KEY, shipping: SHIPPING });
     if (path === '/api/settings') return json(await getSettings(env));
-    if (path === '/api/order' && req.method === 'POST') return placeOrder(req, env, 'bank');
-    if (path === '/api/checkout' && req.method === 'POST') return placeOrder(req, env, 'card', url);
+    if ((path === '/api/order' || path === '/api/checkout') && req.method === 'POST') {
+      if (await limited(env.ORDER_LIMIT, req)) return json({ error: 'Too many orders from your connection. Please wait a minute.' }, 429);
+      return path === '/api/order' ? placeOrder(req, env, 'bank') : placeOrder(req, env, 'card', url);
+    }
     if (path === '/api/session') return session(url, env);
     if (path === '/api/stripe-webhook' && req.method === 'POST') return webhook(req, env);
     if (path.startsWith('/api/')) return json({ error: 'Not found' }, 404);
     return env.ASSETS.fetch(req);
   },
 };
+
+// Per-IP limits from the Workers Rate Limiting bindings in wrangler.jsonc (absent binding = no limit)
+const limited = async (limiter, req) => !!limiter && !(await limiter.limit({ key: req.headers.get('cf-connecting-ip') || 'local' })).success;
 
 class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 
@@ -152,7 +161,8 @@ async function placeOrder(req, env, payMethod, url) {
   if (payMethod === 'card' && !env.STRIPE_SECRET_KEY) return json({ error: 'Card payment is not set up yet.' }, 503);
   let order;
   try { order = await req.json(); } catch { return json({ error: 'Bad request' }, 400); }
-  if (!String(order.name || '').trim() || !/^[\d\s+()-]{7,30}$/.test(order.phone || '')) return json({ error: 'Name and phone are required' }, 400);
+  const phone = String(order.phone || '');
+  if (!String(order.name || '').trim() || !/^[\d\s+()-]{7,30}$/.test(phone) || (phone.match(/\d/g) || []).length < 7) return json({ error: 'Name and a phone number are required' }, 400);
 
   let items;
   try { items = lineItems(await getProducts(env), order); } catch (e) { return json({ error: e.message }, 400); }
@@ -200,14 +210,21 @@ async function placeOrder(req, env, payMethod, url) {
   return json({ url: s.url });
 }
 
-// Marks an order paid and takes its items off stock — all in one transaction, and only once per order
-async function markPaid(env, no) {
-  const order = await env.DB.prepare('SELECT items FROM orders WHERE no=?').bind(no).first();
+// Marks an order paid and takes its items off stock — all in one transaction, and only once per order.
+// An admin marking a bank transfer paid is refused if that stock has already gone to another paid order;
+// Stripe calls (fromStripe) always go through, because the money is already taken.
+async function markPaid(env, no, fromStripe = false) {
+  const order = await env.DB.prepare('SELECT items, status FROM orders WHERE no=?').bind(no).first();
   if (!order) return false;
+  const products = await getProducts(env);
+  if (!fromStripe && ['pending_payment', 'awaiting_payment'].includes(order.status)) {
+    try { lineItems(products, { no, items: JSON.parse(order.items) }); }
+    catch (e) { throw new HttpError(409, `${e.message}. Cancel this order or add stock first.`); }
+  }
   const pending = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='paid' AND stock_applied=0)";
   await env.DB.batch([
     env.DB.prepare("UPDATE orders SET status='paid' WHERE no=? AND status IN ('pending_payment','awaiting_payment')").bind(no),
-    ...stockChanges(env, JSON.parse(order.items), await getProducts(env), -1, pending, no),
+    ...stockChanges(env, JSON.parse(order.items), products, -1, pending, no),
     env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + pending).bind(no),
     env.DB.prepare("UPDATE orders SET stock_applied=1 WHERE no=? AND status='paid'").bind(no),
   ]);
@@ -215,8 +232,14 @@ async function markPaid(env, no) {
 }
 // Cancelling puts stock back if it had been taken
 async function cancelOrder(env, no) {
-  const order = await env.DB.prepare('SELECT items FROM orders WHERE no=?').bind(no).first();
+  const order = await env.DB.prepare('SELECT items, status, stripe_session FROM orders WHERE no=?').bind(no).first();
   if (!order) throw new HttpError(404, 'Order not found');
+  if (order.status === 'pending_payment' && order.stripe_session && env.STRIPE_SECRET_KEY) {
+    const r = await stripe(env, `checkout/sessions/${order.stripe_session}/expire`, { method: 'POST' });
+    // Stripe refuses to expire a checkout that is already paid: let the payment land instead of hiding it
+    if (!r.ok && (await stripe(env, `checkout/sessions/${order.stripe_session}`).then((x) => x.json()).catch(() => ({}))).status !== 'expired')
+      throw new HttpError(409, 'This card payment may have just gone through. Refresh the orders list before cancelling.');
+  }
   const taken = "EXISTS (SELECT 1 FROM orders WHERE no=?1 AND status='cancelled' AND stock_applied=1)";
   await env.DB.batch([
     env.DB.prepare("UPDATE orders SET status='cancelled' WHERE no=?").bind(no),
@@ -245,7 +268,7 @@ async function session(url, env) {
   if (!r.ok) return json({ paid: false });
   const s = await r.json();
   const paid = s.payment_status === 'paid';
-  if (paid && s.client_reference_id) await markPaid(env, s.client_reference_id);
+  if (paid && s.client_reference_id) await markPaid(env, s.client_reference_id, true);
   return json({ paid, no: s.client_reference_id });
 }
 
@@ -262,13 +285,13 @@ async function webhook(req, env) {
   const event = JSON.parse(raw);
   const s = event.data?.object;
   if (['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type) && s?.payment_status === 'paid' && s.client_reference_id) {
-    await markPaid(env, s.client_reference_id);
+    await markPaid(env, s.client_reference_id, true);
   }
   return json({ received: true });
 }
 
 function stripe(env, path, init = {}) {
-  return fetch(`https://api.stripe.com/v1/${path}`, {
+  return fetch(`${env.STRIPE_API || 'https://api.stripe.com'}/v1/${path}`, { // STRIPE_API: tests point this at a local fake Stripe
     ...init,
     headers: { authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'content-type': 'application/x-www-form-urlencoded' },
   });

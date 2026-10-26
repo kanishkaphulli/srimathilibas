@@ -60,7 +60,8 @@ Stripe charges 2.65% + NZ$0.30 per NZ card payment, with no monthly fee. Card pa
 ## Other settings
 
 - **Bank transfer:** put your account number in `BANK` near the top of the script in `index.html`. Until you do, customers are told you'll send bank details on WhatsApp.
-- **Delivery fee:** it's `SHIPPING` in both `index.html` and `order.js`. Keep the two values the same.
+- **Delivery fee:** it's `SHIPPING` in `order.js`. The shop reads it from the server, so there's only one place to change it.
+- **Rate limits:** each internet connection can try to sign in 10 times a minute and place 30 orders a minute (`ratelimits` in `wrangler.jsonc`).
 
 ## Database setup (already done)
 
@@ -87,4 +88,5 @@ npm run deploy      # runs all tests first, deploys only if they pass
   - **Admin sign-in:** redirects when signed out, wrong passwords, cookie flags, every listed admin, tampered sessions and logout.
   - **Orders and stock:** bank orders, the delivery charge, rejected orders, stock changing exactly once on paid and on cancel, and sign-in required to change orders.
   - **Admin catalogue:** saving edits, refusing stale saves, the planner switch and photo uploads.
+- Card payments are tested against a small **fake Stripe** inside the tests (`STRIPE_API` points the Worker at it; leave `STRIPE_API` unset in production).
 - **Not covered:** page layout and clicking through the shop in a real browser (that needs Chrome, which isn't installed here), and real Stripe payments.
