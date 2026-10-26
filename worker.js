@@ -164,8 +164,9 @@ async function placeOrder(req, env, payMethod, url) {
   const phone = String(order.phone || '');
   if (!String(order.name || '').trim() || !/^[\d\s+()-]{7,30}$/.test(phone) || (phone.match(/\d/g) || []).length < 7) return json({ error: 'Name and a phone number are required' }, 400);
 
+  const products = await getProducts(env);
   let items;
-  try { items = lineItems(await getProducts(env), order); } catch (e) { return json({ error: e.message }, 400); }
+  try { items = lineItems(products, order); } catch (e) { return json({ error: e.message }, 400); }
   const goods = items.filter((i) => !i.shipping);
   const subtotal = goods.reduce((t, i) => t + i.amount * i.qty, 0) / 100;
   const shipping = (items.find((i) => i.shipping)?.amount || 0) / 100;
@@ -173,15 +174,22 @@ async function placeOrder(req, env, payMethod, url) {
   const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email || '') ? clip(order.email, 120) : '';
   const delivery = order.delivery === 'delivery' ? 'delivery' : 'pickup';
 
+  // Save the order and hold its stock in one transaction. holdStock() fails the whole batch if a piece sold out
+  // in the meantime, so two customers can never both get the last one.
   try {
-    await env.DB.prepare(`INSERT INTO orders (no,created_at,status,pay_method,name,phone,email,delivery,address,notes,items,subtotal,shipping,total)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(
-      order.no, new Date().toISOString(), payMethod === 'card' ? 'pending_payment' : 'awaiting_payment', payMethod,
-      clip(order.name, 80), clip(order.phone, 30), email, delivery, delivery === 'delivery' ? clip(order.address, 300) : '', clip(order.notes, 300),
-      JSON.stringify(goods.map(({ id, colour, size, qty, name, amount }) => ({ id, colour, size, qty, name, price: amount / 100 }))), subtotal, shipping, subtotal + shipping,
-    ).run();
-  } catch {
-    return json({ error: 'Could not save your order — please try again.' }, 409);
+    await env.DB.batch([
+      env.DB.prepare(`INSERT INTO orders (no,created_at,status,pay_method,name,phone,email,delivery,address,notes,items,subtotal,shipping,total,stock_applied)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`).bind(
+        order.no, new Date().toISOString(), payMethod === 'card' ? 'pending_payment' : 'awaiting_payment', payMethod,
+        clip(order.name, 80), clip(order.phone, 30), email, delivery, delivery === 'delivery' ? clip(order.address, 300) : '', clip(order.notes, 300),
+        JSON.stringify(goods.map(({ id, colour, size, qty, name, amount }) => ({ id, colour, size, qty, name, price: amount / 100 }))), subtotal, shipping, subtotal + shipping,
+      ),
+      ...holdStock(env, goods, products),
+      env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version'"),
+    ]);
+  } catch (e) {
+    const soldOut = /malformed JSON/i.test(String(e?.message));
+    return json({ error: soldOut ? 'Sorry, something in your bag has just sold out. Please refresh and check your bag.' : 'Could not save your order. Please try again.' }, 409);
   }
   if (payMethod === 'bank') return json({ no: order.no, total: subtotal + shipping });
 
@@ -192,6 +200,8 @@ async function placeOrder(req, env, payMethod, url) {
     client_reference_id: order.no,
     'payment_intent_data[description]': `Order ${order.no}`,
     'metadata[order]': order.no,
+    // Abandoned card checkouts release their stock when Stripe expires the page (minimum 30 minutes)
+    expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
   });
   if (email) f.set('customer_email', email);
   items.forEach((it, i) => {
@@ -202,7 +212,7 @@ async function placeOrder(req, env, payMethod, url) {
   });
   const r = await stripe(env, 'checkout/sessions', { method: 'POST', body: f });
   if (!r.ok) {
-    await env.DB.prepare("UPDATE orders SET status='cancelled' WHERE no=? AND status='pending_payment'").bind(order.no).run();
+    await cancelOrder(env, order.no); // puts the held stock back
     return json({ error: 'Card payment is unavailable right now.' }, 502);
   }
   const s = await r.json();
@@ -210,14 +220,14 @@ async function placeOrder(req, env, payMethod, url) {
   return json({ url: s.url });
 }
 
-// Marks an order paid and takes its items off stock — all in one transaction, and only once per order.
-// An admin marking a bank transfer paid is refused if that stock has already gone to another paid order;
-// Stripe calls (fromStripe) always go through, because the money is already taken.
+// Marks an order paid. New orders already hold their stock (stock_applied=1), so nothing more comes off.
+// Orders placed before stock was held at order time (stock_applied=0) take it now, once; for those an admin
+// marking a bank transfer paid is refused if the stock has gone. Stripe calls (fromStripe) always go through.
 async function markPaid(env, no, fromStripe = false) {
-  const order = await env.DB.prepare('SELECT items, status FROM orders WHERE no=?').bind(no).first();
+  const order = await env.DB.prepare('SELECT items, status, stock_applied FROM orders WHERE no=?').bind(no).first();
   if (!order) return false;
   const products = await getProducts(env);
-  if (!fromStripe && ['pending_payment', 'awaiting_payment'].includes(order.status)) {
+  if (!fromStripe && !order.stock_applied && ['pending_payment', 'awaiting_payment'].includes(order.status)) {
     try { lineItems(products, { no, items: JSON.parse(order.items) }); }
     catch (e) { throw new HttpError(409, `${e.message}. Cancel this order or add stock first.`); }
   }
@@ -230,7 +240,7 @@ async function markPaid(env, no, fromStripe = false) {
   ]);
   return true;
 }
-// Cancelling puts stock back if it had been taken
+// Cancelling puts back any stock the order holds (unpaid or paid)
 async function cancelOrder(env, no) {
   const order = await env.DB.prepare('SELECT items, status, stripe_session FROM orders WHERE no=?').bind(no).first();
   if (!order) throw new HttpError(404, 'Order not found');
@@ -247,6 +257,17 @@ async function cancelOrder(env, no) {
     env.DB.prepare("UPDATE meta SET value = value + 1 WHERE key='version' AND " + taken).bind(no),
     env.DB.prepare("UPDATE orders SET stock_applied=0 WHERE no=? AND status='cancelled'").bind(no),
   ]);
+}
+// Takes an order's items off stock. If a size no longer has enough, the update hits json('sold out'), which
+// is malformed JSON: SQLite raises an error and the whole batch (order insert included) rolls back.
+function holdStock(env, goods, products) {
+  return goods.map((i) => {
+    const at = products.find((p) => p.id === i.id).colours.findIndex((c) => c.name === i.colour);
+    return env.DB.prepare(
+      `UPDATE products SET colours = json_set(colours, ?1, CASE WHEN json_extract(colours, ?2) = ?3 AND COALESCE(json_extract(colours, ?1), 0) >= ?4
+        THEN json_extract(colours, ?1) - ?4 ELSE json('sold out') END) WHERE id = ?5`,
+    ).bind(stockPath(at, i.size), namePath(at), i.colour, i.qty, i.id);
+  });
 }
 // One UPDATE per item; `guard` (using ?1 = order no) makes them no-ops unless this order's stock change is due
 // Colours are found by position, so each UPDATE also checks the colour at that position still has the same name
@@ -286,6 +307,10 @@ async function webhook(req, env) {
   const s = event.data?.object;
   if (['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(event.type) && s?.payment_status === 'paid' && s.client_reference_id) {
     await markPaid(env, s.client_reference_id, true);
+  }
+  if (event.type === 'checkout.session.expired' && s?.client_reference_id) {
+    const o = await env.DB.prepare('SELECT status FROM orders WHERE no=?').bind(s.client_reference_id).first();
+    if (o?.status === 'pending_payment') await cancelOrder(env, s.client_reference_id); // stock goes back on sale
   }
   return json({ received: true });
 }

@@ -19,7 +19,10 @@ Open `/admin` and sign in on the sign-in page with a name and password from the 
 - **Orders:** every order is saved here.
   - Card orders become **Paid** on their own.
   - For bank transfers, click **Mark paid** when the money arrives.
-  - Marking an order paid takes its items off stock. Cancelling a paid order puts them back. Refund card payments in Stripe yourself.
+  - **Stock is held as soon as an order is placed,** so two customers can't buy the same last piece.
+  - **Bank-transfer orders** hold their stock until you mark them paid or cancel them. There's no time limit: unpaid ones stay on hold until you decide.
+  - **Card orders** that aren't paid release their stock after 30 minutes, when Stripe expires the payment page. This needs the Stripe webhook, including the `checkout.session.expired` event.
+  - **Cancelling** any order puts its pieces back on sale. Refund card payments in Stripe yourself.
 - **Products & Stock:** click a product to open it.
   - Each product has a list of sizes and one or more **colours**.
   - Each colour has up to 8 photos (the first one is the main photo; use ★ to change it) and a stock table with one row per colour and one column per size.
@@ -51,7 +54,7 @@ Stripe charges 2.65% + NZ$0.30 per NZ card payment, with no monthly fee. Card pa
 2. Set up a webhook so orders are marked paid even if the customer closes the tab before coming back to the site.
    - In Stripe, go to Developers → Webhooks → Add endpoint.
    - Use the URL `https://srimathilibas.kanishkaphulli.workers.dev/api/stripe-webhook`.
-   - Choose the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`.
+   - Choose the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`.
    - Copy the signing secret (`whsec_…`) and store it:
    ```bash
    npx wrangler secret put STRIPE_WEBHOOK_SECRET --name srimathilibas

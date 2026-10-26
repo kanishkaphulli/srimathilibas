@@ -99,7 +99,7 @@ describe('orders and stock', () => {
     assert.equal((await post('/api/order', order({ delivery: 'delivery' }))).status, 400);
   });
   it('rejects bad orders', async () => {
-    assert.equal((await post('/api/order', order({ items: [{ id: 'su1', colour: 'As shown', size: 'M', qty: 99 }] }))).status, 400);
+    assert.equal((await post('/api/order', order({ items: [{ id: 'su1', colour: 'As shown', size: 'M', qty: 5000 }] }))).status, 400);
     assert.equal((await post('/api/order', order({ items: [{ id: 'lh2', colour: 'As shown', size: 'S', qty: 1 }] }))).status, 400); // 0 in stock
     assert.equal((await post('/api/order', order({ items: [{ id: 'nope', colour: 'As shown', size: 'M', qty: 1 }] }))).status, 400);
     assert.equal((await post('/api/order', order({ phone: '' }))).status, 400);
@@ -109,15 +109,15 @@ describe('orders and stock', () => {
     assert.equal((await post('/api/order', o)).status, 200);
     assert.equal((await post('/api/order', { ...o })).status, 409); // same order number twice
   });
-  it('takes stock off once when paid and puts it back once when cancelled', async () => {
+  it('holds stock when an order is placed and puts it back once when cancelled', async () => {
     const before = await stock('sa1', 'As shown', 'Free size');
     const o = order({ items: [{ id: 'sa1', colour: 'As shown', size: 'Free size', qty: 2 }] });
     await post('/api/order', o);
-    assert.equal(await stock('sa1', 'As shown', 'Free size'), before, 'unpaid orders hold no stock');
+    assert.equal(await stock('sa1', 'As shown', 'Free size'), before - 2, 'unpaid orders hold their stock');
     const set = (status) => admin(`/admin/api/orders/${o.no}`, { method: 'POST', body: JSON.stringify({ status }) });
     assert.equal((await set('paid')).body.status, 'paid');
     assert.equal((await set('paid')).body.status, 'paid');
-    assert.equal(await stock('sa1', 'As shown', 'Free size'), before - 2);
+    assert.equal(await stock('sa1', 'As shown', 'Free size'), before - 2, 'paying takes nothing more');
     assert.equal((await set('shipped')).body.status, 'shipped');
     assert.equal((await set('cancelled')).body.status, 'cancelled');
     assert.equal((await set('cancelled')).body.status, 'cancelled');
@@ -129,20 +129,26 @@ describe('orders and stock', () => {
     const r = await s.get(`/admin/api/orders/${o.no}`, { method: 'POST', body: JSON.stringify({ status: 'paid' }) });
     assert.equal(r.status, 401);
   });
-  it('refuses to mark a bank order paid when its stock already went to another paid order', async () => {
-    // lh1 size S has 1 left; unpaid orders hold no stock, so both orders are accepted
+  it('gives the last piece to one order only, even when two arrive at once', async () => {
+    // lh1 size S has 1 left
     const item = [{ id: 'lh1', colour: 'As shown', size: 'S', qty: 1 }];
-    const a = order({ items: item }), b = order({ items: item });
-    assert.equal((await post('/api/order', a)).status, 200);
-    assert.equal((await post('/api/order', b)).status, 200);
-    const set = (no, status) => admin(`/admin/api/orders/${no}`, { method: 'POST', body: JSON.stringify({ status }) });
-    assert.equal((await set(a.no, 'paid')).status, 200);
-    const refused = await set(b.no, 'paid');
-    assert.equal(refused.status, 409);
-    assert.match(refused.body.error, /only 0 .* left/i);
+    const [a, b] = [order({ items: item }), order({ items: item })];
+    const results = await Promise.all([post('/api/order', a), post('/api/order', b)]);
+    assert.equal(results.filter((r) => r.status === 200).length, 1, 'exactly one wins');
+    const lost = results.find((r) => r.status !== 200);
+    // refused either by the stock check before saving (400) or by the hold inside the transaction (409)
+    assert.ok([400, 409].includes(lost.status), `refused with ${lost.status}`);
+    assert.match(lost.body.error, /sold out|only 0/i);
     assert.equal(await stock('lh1', 'As shown', 'S'), 0);
-    await set(a.no, 'cancelled'); // put it back for later tests
+    const winner = results[0].status === 200 ? a : b;
+    const loserNo = winner === a ? b.no : a.no;
+    assert.equal((await admin('/admin/api/orders')).body.find((x) => x.no === loserNo), undefined, 'the refused order is not saved');
+    // An unpaid bank order holds with no time limit, until the admin cancels it
+    await admin(`/admin/api/orders/${winner.no}`, { method: 'POST', body: JSON.stringify({ status: 'cancelled' }) });
     assert.equal(await stock('lh1', 'As shown', 'S'), 1);
+    assert.equal((await post('/api/order', order({ items: item }))).status, 200, 'released stock can be ordered again');
+    const again = (await admin('/admin/api/orders')).body.find((x) => x.items[0].id === 'lh1' && x.status === 'awaiting_payment');
+    await admin(`/admin/api/orders/${again.no}`, { method: 'POST', body: JSON.stringify({ status: 'cancelled' }) }); // tidy up
   });
 });
 
@@ -168,6 +174,7 @@ describe('card payments (fake Stripe)', () => {
     const before = await stock('co1', 'As shown', 'M');
     const o = order({ items: [{ id: 'co1', colour: 'As shown', size: 'M', qty: 1 }] });
     await post('/api/checkout', o);
+    assert.equal(await stock('co1', 'As shown', 'M'), before - 1, 'held while the customer pays');
     const id = Object.values(s.stripe.sessions).find((x) => x.client_reference_id === o.no).id;
     assert.deepEqual((await json(`/api/session?id=${id}`)).body, { paid: false, no: o.no });
     s.stripe.pay(id);
@@ -186,6 +193,31 @@ describe('card payments (fake Stripe)', () => {
     assert.equal(await status(o.no), 'awaiting_payment');
     assert.equal((await hook(paidEvent(o.no))).status, 200);
     assert.equal(await status(o.no), 'paid');
+  });
+  it('releases an abandoned card order when Stripe expires its payment page', async () => {
+    const before = await stock('su2', 'As shown', 'M');
+    const o = order({ items: [{ id: 'su2', colour: 'As shown', size: 'M', qty: 1 }] });
+    await post('/api/checkout', o);
+    const form = s.stripe.created.at(-1);
+    const mins = (Number(form.expires_at) - Date.now() / 1000) / 60;
+    assert.ok(mins > 30 && mins <= 31.1, `expires in ${mins} minutes`);
+    assert.equal(await stock('su2', 'As shown', 'M'), before - 1);
+    const sess = Object.values(s.stripe.sessions).find((x) => x.client_reference_id === o.no);
+    sess.status = 'expired';
+    const expired = { type: 'checkout.session.expired', data: { object: { id: sess.id, status: 'expired', payment_status: 'unpaid', client_reference_id: o.no } } };
+    assert.equal((await hook(expired)).status, 200);
+    assert.equal(await status(o.no), 'cancelled');
+    assert.equal(await stock('su2', 'As shown', 'M'), before);
+    assert.equal((await hook(expired)).status, 200);
+    assert.equal(await stock('su2', 'As shown', 'M'), before, 'a repeated notice changes nothing');
+  });
+  it('ignores an expiry notice for an order that was already paid', async () => {
+    const o = order(); await post('/api/checkout', o);
+    await hook(paidEvent(o.no));
+    const before = await stock('su1', 'As shown', 'M');
+    await hook({ type: 'checkout.session.expired', data: { object: { client_reference_id: o.no } } });
+    assert.equal(await status(o.no), 'paid');
+    assert.equal(await stock('su1', 'As shown', 'M'), before);
   });
   it('closes the Stripe checkout when an unpaid card order is cancelled', async () => {
     const o = order(); await post('/api/checkout', o);

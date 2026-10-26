@@ -58,7 +58,8 @@ export async function startServer() {
   writeFileSync(envFile, [`ADMIN_USERS=${ADMIN.name}:${ADMIN.password},${ADMIN2.name}:${ADMIN2.password}`,
     'STRIPE_SECRET_KEY=sk_test_fake', `STRIPE_WEBHOOK_SECRET=${WEBHOOK_SECRET}`, `STRIPE_API=${stripe.url}`, ''].join('\n'));
   const seed = join(dir, 'seed.sql');
-  writeFileSync(seed, execFileSync(NODE, ['scripts/seed.mjs'], { cwd: ROOT }));
+  // Orders now hold stock, so give the kurta most tests order (su1, size M) plenty to go round
+  writeFileSync(seed, execFileSync(NODE, ['scripts/seed.mjs'], { cwd: ROOT }) + "\nUPDATE products SET colours = json_set(colours, '$[0].stock.M', 999) WHERE id = 'su1';\n");
   for (const file of [join(ROOT, 'schema.sql'), seed]) wrangler(['d1', 'execute', 'srimathilibas', '--local', '--persist-to', state, '--file', file]);
 
   const port = 8800 + Math.floor(Math.random() * 900);

@@ -139,7 +139,7 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
         <button id="ord-refresh">Refresh</button>
       </div>
     </div>
-    <p class="hint">Card orders turn <b>Paid</b> automatically. For bank transfers, click <b>Mark paid</b> once the money arrives. Marking paid takes the items off stock; cancelling a paid order puts them back.</p>
+    <p class="hint">Card orders turn <b>Paid</b> automatically. For bank transfers, click <b>Mark paid</b> once the money arrives. Stock is held as soon as an order is placed, so nobody else can buy those pieces. Unpaid bank-transfer orders hold their stock until you mark them paid or cancel them; cancelling puts the pieces back on sale. Unpaid card orders release their stock after 30 minutes.</p>
     <div class="table"><table>
       <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
       <tbody id="orders"></tbody>
@@ -238,7 +238,7 @@ function render(){
       </div>
 
       <h3>Stock — how many you have of each colour and size</h3>
-      <p class="hint">Use <b>−</b> and <b>+</b> to change a number. Stock goes down by itself when an order is paid.</p>
+      <p class="hint">Use <b>−</b> and <b>+</b> to change a number. Stock goes down by itself when a customer places an order, and back up if the order is cancelled.</p>
       <div class="table"><table class="stock">
         <thead><tr><th>Colour</th>${p.sizes.map(s=>`<th>${esc(s)}</th>`).join('')}<th>Total</th><th></th></tr></thead>
         <tbody>${p.colours.map((c,ci)=>`<tr>
