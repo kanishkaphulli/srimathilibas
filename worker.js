@@ -1,5 +1,5 @@
 // Cloudflare Worker: serves the static site, plus
-//  - /admin and /admin/api/*  locked to the users in the ADMIN_USERS secret ("name:password,name2:password2")
+//  - /admin and /admin/api/*  need a signed-in session; /admin/login checks the ADMIN_USERS secret ("name:password,name2:password2")
 //  - /products.json, /promos.json  read from the D1 database (DB)
 //  - /photos/<key>             product photos from R2 (PHOTOS)
 //  - /api/order                saves a bank-transfer order
@@ -10,6 +10,7 @@
 
 import { lineItems, stockPath, namePath } from './order.js';
 import { validateProducts, validatePromos } from './validate.js';
+import { makeSession, readSession } from './session.js';
 
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
 const STATUSES = ['pending_payment', 'awaiting_payment', 'paid', 'shipped', 'cancelled'];
@@ -20,10 +21,12 @@ export default {
     const path = url.pathname;
 
     if (path === '/admin' || path.startsWith('/admin.') || path.startsWith('/admin/')) {
-      const denied = await checkAdmin(req, env);
-      if (denied) return denied;
+      if (path === '/admin/login') return req.method === 'POST' ? login(req, env) : loginPage(env);
+      if (path === '/admin/logout' && req.method === 'POST') return logout();
+      const who = await currentAdmin(req, env);
+      if (!who) return path.startsWith('/admin/api/') ? json({ error: 'You have been signed out. Please sign in again.' }, 401) : redirect('/admin/login');
       if (path.startsWith('/admin/api/')) {
-        try { return await adminApi(req, env, path.slice('/admin/api/'.length)); }
+        try { return await adminApi(req, env, path.slice('/admin/api/'.length), who); }
         catch (e) { return json({ error: e.status ? e.message : 'Something went wrong — please try again' }, e.status || 500); }
       }
       return env.ASSETS.fetch(req);
@@ -44,18 +47,60 @@ export default {
 
 class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 
-// ---- Admin login (HTTP Basic over HTTPS) ----
-async function checkAdmin(req, env) {
-  const ask = (msg) => new Response(msg, { status: 401, headers: { 'www-authenticate': 'Basic realm="Srimathi Libas Admin", charset="UTF-8"', 'cache-control': 'no-store' } });
-  if (!env.ADMIN_USERS) return new Response('Admin is locked: no admin users are set up yet.', { status: 503 });
-  const m = (req.headers.get('authorization') || '').match(/^Basic\s+(.+)$/i);
-  if (!m) return ask('Sign in required');
-  let given;
-  try { given = new TextDecoder().decode(Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0))); } catch { return ask('Sign in required'); }
-  for (const pair of env.ADMIN_USERS.split(',').map((s) => s.trim()).filter(Boolean)) {
-    if (await same(given, pair)) return null;
+// ---- Admin sign-in: a form checks ADMIN_USERS, then a signed session cookie (12 hours) ----
+const SESSION_HOURS = 12;
+const COOKIE = 'sl_admin';
+const cookieFlags = 'Path=/; HttpOnly; Secure; SameSite=Lax';
+const redirect = (to, headers = {}) => new Response(null, { status: 303, headers: { location: to, 'cache-control': 'no-store', ...headers } });
+
+async function currentAdmin(req, env) {
+  const m = (req.headers.get('cookie') || '').match(new RegExp('(?:^|;\\s*)' + COOKIE + '=([^;]+)'));
+  return m ? readSession(m[1], env.ADMIN_USERS) : null;
+}
+
+async function login(req, env) {
+  if (!env.ADMIN_USERS) return loginPage(env);
+  let name = '', password = '';
+  try { const f = await req.formData(); name = String(f.get('name') || '').trim(); password = String(f.get('password') || ''); } catch {}
+  const given = name + ':' + password;
+  let ok = false;
+  for (const pair of env.ADMIN_USERS.split(',').map((p) => p.trim()).filter(Boolean)) if (await same(given, pair)) ok = true;
+  if (!ok || !name) {
+    await new Promise((r) => setTimeout(r, 600)); // slows down password guessing a little
+    return loginPage(env, 'Wrong name or password.', name, 401);
   }
-  return ask('Wrong name or password');
+  const token = await makeSession(name, env.ADMIN_USERS, SESSION_HOURS * 3600);
+  return redirect('/admin', { 'set-cookie': `${COOKIE}=${token}; ${cookieFlags}; Max-Age=${SESSION_HOURS * 3600}` });
+}
+
+function logout() {
+  return redirect('/admin/login?out=1', { 'set-cookie': `${COOKIE}=; ${cookieFlags}; Max-Age=0` });
+}
+
+function loginPage(env, error = '', name = '', status = 200) {
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const note = !env.ADMIN_USERS ? 'Admin is locked: no admin users are set up yet.' : error;
+  return new Response(`<!doctype html><html lang="en-NZ"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Sign in · Srimathi Libas Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{min-height:100vh;display:grid;place-items:center;background:#f6f3f1;color:#1d1a19;font:400 15px/1.5 "Chivo",system-ui,sans-serif;padding:16px}
+form{width:min(360px,100%);background:#fff;border:1px solid #e8e3df;padding:28px;display:grid;gap:14px}
+.logo{color:#7a1f2b;font-weight:700;font-size:18px}h1{font-size:20px;letter-spacing:-.01em}
+label{display:grid;gap:4px;font-size:13px;font-weight:700}input{font:inherit;font-size:15px;border:1px solid #ddd5d1;padding:10px 12px;width:100%}
+input:focus{outline:none;border-color:#1d1a19}button{font:700 14px/1 "Chivo",sans-serif;background:#7a1f2b;color:#fff;border:0;padding:13px;cursor:pointer}
+button:hover{background:#5f1721}.msg{font-size:13px;color:#b3261e}.ok{font-size:13px;color:#1f7a45}a{color:#6b6461;font-size:13px}
+</style></head><body>
+<form method="post" action="/admin/login">
+<div class="logo">Srimathi Libas</div><h1>Admin sign in</h1>
+${note ? `<p class="msg" role="alert">${esc(note)}</p>` : ''}<p class="ok" id="out" hidden>You have signed out.</p>
+<label>Name<input name="name" autocomplete="username" required value="${esc(name)}" ${name ? '' : 'autofocus'}></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" required ${name ? 'autofocus' : ''}></label>
+<button type="submit">Sign in</button>
+<a href="/">Back to the shop</a>
+</form>
+<script>if(new URLSearchParams(location.search).has('out'))document.getElementById('out').hidden=false</script>
+</body></html>`, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' } });
 }
 // Constant-time compare of SHA-256 digests, so timing doesn't leak how much of a secret matched
 async function same(a, b) {
@@ -230,12 +275,12 @@ function stripe(env, path, init = {}) {
 }
 
 // ---- Admin API (already signed in) ----
-async function adminApi(req, env, route) {
+async function adminApi(req, env, route, who) {
   const body = async () => { try { return await req.json(); } catch { throw new HttpError(400, 'Bad request'); } };
 
   if (route === 'data' && req.method === 'GET') {
     const [products, promos, v, settings] = await Promise.all([getProducts(env), getPromos(env), version(env), getSettings(env)]);
-    return json({ products, promos, version: v, settings });
+    return json({ products, promos, version: v, settings, user: who.u });
   }
   if (route === 'settings' && req.method === 'PUT') {
     const s = await body();

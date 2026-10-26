@@ -19,6 +19,9 @@ header{border-bottom:1px solid var(--line);background:var(--surface)}
 header .wrap{display:flex;justify-content:space-between;align-items:center;height:60px}
 header h1{font-size:1.5rem;color:var(--maroon)}
 header a{color:var(--muted);font-size:.9rem}
+header .who{display:flex;align-items:center;gap:16px;font-size:.9rem;color:var(--muted)}
+header .logout{padding:6px 14px;font-size:.85rem}
+@media (max-width:560px){header #who{display:none}}
 section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:20px}
 section h2{font-size:1.6rem;margin-bottom:4px}
 .hint{color:var(--muted);font-size:.85rem;margin-bottom:14px}
@@ -114,7 +117,10 @@ label.chk{display:flex;gap:6px;align-items:center;font-size:.9rem;white-space:no
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>Srimathi Libas · Admin</h1><a href="/" target="_blank">View shop ↗</a></div></header>
+<header><div class="wrap"><h1>Srimathi Libas · Admin</h1>
+  <div class="who"><span id="who"></span><a href="/" target="_blank">View shop ↗</a>
+    <form method="post" action="/admin/logout"><button type="submit" class="logout">Log out</button></form></div>
+</div></header>
 
 <main class="wrap">
   <section aria-labelledby="set-title">
@@ -197,11 +203,13 @@ async function api(path,opts={}){
   // location.origin, not a relative URL: Chrome refuses relative fetches when the page URL holds a login (user:pass@)
   const r=await fetch(location.origin+'/admin/api/'+path,{...opts,headers:opts.body instanceof Blob?{'content-type':opts.body.type}:{'content-type':'application/json'}});
   const j=await r.json().catch(()=>({}));
+  // Session ended (12 hours passed, logged out elsewhere, or the admin list changed): back to sign-in
+  if(r.status===401){location.href='/admin/login';throw new Error('Signed out')}
   if(!r.ok)throw new Error(j.error||`Error ${r.status}`);
   return j;
 }
 async function load(){
-  try{data=await api('data'); dirty=false; render(); $('#set-planner').checked=data.settings?.planner!==false; status('Loaded — up to date.','ok')}
+  try{data=await api('data'); dirty=false; render(); $('#who').textContent=data.user?`Signed in as ${data.user}`:''; $('#set-planner').checked=data.settings?.planner!==false; status('Loaded — up to date.','ok')}
   catch(e){status('Could not load: '+e.message,'bad')}
 }
 function changed(){dirty=true;status('Unsaved changes — click Save & publish')}

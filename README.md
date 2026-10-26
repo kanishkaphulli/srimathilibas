@@ -14,7 +14,7 @@ To deploy, run `npx wrangler deploy`.
 
 ## Admin page
 
-Open `/admin` and sign in with a name and password from the `ADMIN_USERS` secret.
+Open `/admin` and sign in on the sign-in page with a name and password from the `ADMIN_USERS` secret. A session lasts 12 hours; use **Log out** (top right) to end it sooner. Changing `ADMIN_USERS` signs everyone out.
 
 - **Orders:** every order is saved here.
   - Card orders become **Paid** on their own.
@@ -71,7 +71,20 @@ npx wrangler d1 execute srimathilibas --remote --file seed.sql
 ```
 The seed never overwrites rows that already exist. After it's loaded, the admin page is where products and promos live, and the two `.json` files are only a starting copy.
 
-## Checks
+## Tests
 
-Run `node worker.test.mjs` to check pricing, stock and validation.
-To run the whole site on your computer with a local copy of the database and photo storage, run `npx wrangler dev`. Set up the local database first with the commands above, using `--local` instead of `--remote`.
+```bash
+npm test            # everything: unit + API (about 30 seconds the first time Wrangler starts)
+npm run test:unit   # pricing, validation, stock sheet, sessions (instant)
+npm run test:api    # the real Worker on a throwaway database
+npm run deploy      # runs all tests first, deploys only if they pass
+```
+
+- `tests/unit.test.mjs` checks `order.js`, `validate.js`, `stock-sheet.js` and `session.js`.
+- `tests/api.test.mjs` starts `wrangler dev` against a **fresh database and photo store in a temporary folder**, seeded from `schema.sql`, `products.json` and `promos.json`, with test-only admin logins and no Stripe key. It never touches the live site or your local dev data, and the temporary folder is deleted afterwards.
+- The API tests cover:
+  - **The public shop:** catalogue and settings, plus confirming that private files are never served.
+  - **Admin sign-in:** redirects when signed out, wrong passwords, cookie flags, every listed admin, tampered sessions and logout.
+  - **Orders and stock:** bank orders, the delivery charge, rejected orders, stock changing exactly once on paid and on cancel, and sign-in required to change orders.
+  - **Admin catalogue:** saving edits, refusing stale saves, the planner switch and photo uploads.
+- **Not covered:** page layout and clicking through the shop in a real browser (that needs Chrome, which isn't installed here), and real Stripe payments.

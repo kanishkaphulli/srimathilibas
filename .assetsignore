@@ -20,3 +20,6 @@ migrations
 backups
 design-previews
 .taste-skill
+session.js
+tests
+package.json
